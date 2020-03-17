@@ -1,4 +1,4 @@
-package ru.ifmo.ageev.concurrent;
+package ru.ifmo.rain.ageev.concurrent;
 
 import info.kgeorgiy.java.advanced.concurrent.AdvancedIP;
 import info.kgeorgiy.java.advanced.concurrent.ListIP;
