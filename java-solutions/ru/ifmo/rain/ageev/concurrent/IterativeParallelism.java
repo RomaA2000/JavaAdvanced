@@ -3,17 +3,14 @@ package ru.ifmo.ageev.concurrent;
 import info.kgeorgiy.java.advanced.concurrent.AdvancedIP;
 import info.kgeorgiy.java.advanced.concurrent.ListIP;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * List iterative parallelism support for operations from {@link AdvancedIP}.
+ * List iterative parallelism support for operations from {@link ListIP}.
  *
  * @author ageev
  * @version 1.0.1
@@ -89,7 +86,7 @@ public class IterativeParallelism implements AdvancedIP {
                                      Function<Stream<M>, R> merger) throws InterruptedException {
         List<Stream<I>> blocks = makeBlocks(threads, values);
         List<M> workersResults = new ArrayList<>(Collections.nCopies(blocks.size(), null));
-        ArrayList<Thread> workers = new ArrayList<>();
+        List<Thread> workers = new ArrayList<>();
         for (int i = 0; i < blocks.size(); ++i) {
             final int idx = i;
             Thread thread = new Thread(() -> workersResults.set(idx, work.apply(blocks.get(idx))));
@@ -100,15 +97,17 @@ public class IterativeParallelism implements AdvancedIP {
         return merger.apply(workersResults.stream());
     }
 
-    private void joinAll(ArrayList<Thread> workers) throws InterruptedException {
-        for (int i = 0; i < workers.size(); ++i) {
+    private void joinAll(List<Thread> workers) throws InterruptedException {
+        for (Iterator<Thread> i = workers.iterator(); i.hasNext(); ) {
+            Thread now = i.next();
             try {
-                workers.get(i).join();
+                now.join();
             } catch (InterruptedException e) {
+                now.interrupt();
                 InterruptedException exception = new InterruptedException("Some threads were interrupted");
                 exception.addSuppressed(e);
-                for (int idx = i + 1; idx < workers.size(); ++i) {
-                    workers.get(idx).interrupt();
+                for (; i.hasNext(); ) {
+                    i.next().interrupt();
                 }
                 throw exception;
             }
