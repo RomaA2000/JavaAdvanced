@@ -1,5 +1,6 @@
 package ru.ifmo.ageev.concurrent;
 
+import info.kgeorgiy.java.advanced.concurrent.AdvancedIP;
 import info.kgeorgiy.java.advanced.concurrent.ListIP;
 
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import java.util.stream.Stream;
  * @author ageev
  * @version 1.0.1
  */
-public class IterativeParallelism implements ListIP {
+public class IterativeParallelism implements AdvancedIP {
     @Override
     /**
      * {@inheritDoc}
@@ -80,15 +81,15 @@ public class IterativeParallelism implements ListIP {
                 s -> s.anyMatch(Boolean::booleanValue));
     }
 
-    private <I> I minMaxSamePart(int threads, List<? extends I> values, Function<Stream<? extends I>, I> comparator) throws InterruptedException {
+    private <I> I minMaxSamePart(int threads, List<I> values, Function<Stream<I>, I> comparator) throws InterruptedException {
         return parallelWork(threads, values, comparator, comparator);
     }
 
-    private <I, M, R> R parallelWork(int threads, List<? extends I> values, Function<Stream<? extends I>, M> work,
-                                     Function<Stream<? extends M>, R> merger) throws InterruptedException {
-        List<Stream<? extends I>> blocks = makeBlocks(threads, values);
+    private <I, M, R> R parallelWork(int threads, List<I> values, Function<Stream<I>, M> work,
+                                     Function<Stream<M>, R> merger) throws InterruptedException {
+        List<Stream<I>> blocks = makeBlocks(threads, values);
         List<M> workersResults = new ArrayList<>(Collections.nCopies(blocks.size(), null));
-        List<Thread> workers = new ArrayList<>();
+        ArrayList<Thread> workers = new ArrayList<>();
         for (int i = 0; i < blocks.size(); ++i) {
             final int idx = i;
             Thread thread = new Thread(() -> workersResults.set(idx, work.apply(blocks.get(idx))));
@@ -99,25 +100,24 @@ public class IterativeParallelism implements ListIP {
         return merger.apply(workersResults.stream());
     }
 
-    private void joinAll(List<Thread> workers) throws InterruptedException {
-        List<InterruptedException> interruptedExceptions = new ArrayList<>();
-        workers.forEach(thread -> {
+    private void joinAll(ArrayList<Thread> workers) throws InterruptedException {
+        for (int i = 0; i < workers.size(); ++i) {
             try {
-                thread.join();
+                workers.get(i).join();
             } catch (InterruptedException e) {
-                interruptedExceptions.add(e);
+                InterruptedException exception = new InterruptedException("Some threads were interrupted");
+                exception.addSuppressed(e);
+                for (int idx = i + 1; idx < workers.size(); ++i) {
+                    workers.get(idx).interrupt();
+                }
+                throw exception;
             }
-        });
-        if (!interruptedExceptions.isEmpty()) {
-            InterruptedException joinFail = new InterruptedException(interruptedExceptions.size() + " threads were interrupted");
-            interruptedExceptions.forEach(joinFail::addSuppressed);
-            throw joinFail;
         }
     }
 
 
-    private <I> List<Stream<? extends I>> makeBlocks(int number, List<? extends I> values) {
-        List<Stream<? extends I>> blocks = new ArrayList<>();
+    private <I> List<Stream<I>> makeBlocks(int number, List<I> values) {
+        List<Stream<I>> blocks = new ArrayList<>();
         int blockSize = values.size() / number;
         int r = values.size() % number;
         int pos = 0;
@@ -134,5 +134,23 @@ public class IterativeParallelism implements ListIP {
 
     private <I> List<I> merge(Stream<? extends Stream<? extends I>> streams) {
         return streams.flatMap(Function.identity()).collect(Collectors.toList());
+    }
+
+    @Override
+    /**
+     * {@inheritDoc}
+     */
+    public <T> T reduce(int threads, List<T> values, Monoid<T> monoid) throws InterruptedException {
+        Function<Stream<T>, T> reducer = s -> s.reduce(monoid.getIdentity(), monoid.getOperator());
+        return minMaxSamePart(threads, values, reducer);
+    }
+
+    @Override
+    /**
+     * {@inheritDoc}
+     */
+    public <T, R> R mapReduce(int threads, List<T> values, Function<T, R> lift, Monoid<R> monoid) throws InterruptedException {
+        Function<Stream<T>, R> reducer = s -> s.map(lift).reduce(monoid.getIdentity(), monoid.getOperator());
+        return parallelWork(threads, values, reducer, s -> s.reduce(monoid.getIdentity(), monoid.getOperator()));
     }
 }
