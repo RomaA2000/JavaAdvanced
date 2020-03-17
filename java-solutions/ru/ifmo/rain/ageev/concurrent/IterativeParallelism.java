@@ -73,9 +73,7 @@ public class IterativeParallelism implements AdvancedIP {
      * {@inheritDoc}
      */
     public <T> boolean any(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
-        return parallelWork(threads, values,
-                s -> s.anyMatch(predicate),
-                s -> s.anyMatch(Boolean::booleanValue));
+        return !all(threads, values, predicate.negate());
     }
 
     private <I> I minMaxSamePart(int threads, List<I> values, Function<Stream<I>, I> comparator) throws InterruptedException {
@@ -140,8 +138,11 @@ public class IterativeParallelism implements AdvancedIP {
      * {@inheritDoc}
      */
     public <T> T reduce(int threads, List<T> values, Monoid<T> monoid) throws InterruptedException {
-        Function<Stream<T>, T> reducer = s -> s.reduce(monoid.getIdentity(), monoid.getOperator());
-        return minMaxSamePart(threads, values, reducer);
+        return minMaxSamePart(threads, values, s -> getReduce(s, monoid));
+    }
+
+    private <T> T getReduce(Stream<T> stream, Monoid<T> monoid) {
+        return stream.reduce(monoid.getIdentity(), monoid.getOperator());
     }
 
     @Override
@@ -150,6 +151,6 @@ public class IterativeParallelism implements AdvancedIP {
      */
     public <T, R> R mapReduce(int threads, List<T> values, Function<T, R> lift, Monoid<R> monoid) throws InterruptedException {
         Function<Stream<T>, R> reducer = s -> s.map(lift).reduce(monoid.getIdentity(), monoid.getOperator());
-        return parallelWork(threads, values, reducer, s -> s.reduce(monoid.getIdentity(), monoid.getOperator()));
+        return parallelWork(threads, values, reducer, s -> getReduce(s, monoid));
     }
 }
