@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * List iterative parallelism support for operations from {@link ListIP}.
+ * List iterative parallelism support for operations from {@link AdvancedIP}.
  *
  * @author ageev
  * @version 1.0.1
