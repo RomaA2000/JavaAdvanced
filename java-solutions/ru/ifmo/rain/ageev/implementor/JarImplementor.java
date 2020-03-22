@@ -99,12 +99,12 @@ public class JarImplementor extends Implementor implements JarImpler {
             }
             superPath = Path.of(sourceCodePath);
         } catch (InvalidPathException e) {
-            throw new ImplerException("Failed to retrieve super class source code");
+            throw new ImplerException("Failed to retrieve super");
         }
 
         JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
         if (javaCompiler == null) {
-            throw new ImplerException("No Java compiler provided");
+            throw new ImplerException("No Java compiler provided in your system");
         }
 
         String[] compilerArgs = {

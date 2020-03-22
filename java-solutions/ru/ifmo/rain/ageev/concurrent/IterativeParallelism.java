@@ -84,6 +84,10 @@ public class IterativeParallelism implements AdvancedIP {
         return stream.map(lift).reduce(monoid.getIdentity(), monoid.getOperator());
     }
 
+    private static <I, M> List<M> filterMapSamePart(final int threads, final List<I> values, final Function<Stream<I>, List<M>> work) throws InterruptedException {
+        return parallelWork(threads, values, work, IterativeParallelism::merge);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -99,7 +103,7 @@ public class IterativeParallelism implements AdvancedIP {
      */
     @Override
     public <T> List<T> filter(final int threads, final List<? extends T> values, final Predicate<? super T> predicate) throws InterruptedException {
-        return parallelWork(threads, values, s -> s.filter(predicate).collect(Collectors.toList()), IterativeParallelism::merge);
+        return filterMapSamePart(threads, values, s -> s.filter(predicate).collect(Collectors.toList()));
     }
 
     /**
@@ -107,7 +111,7 @@ public class IterativeParallelism implements AdvancedIP {
      */
     @Override
     public <T, U> List<U> map(final int threads, final List<? extends T> values, final Function<? super T, ? extends U> f) throws InterruptedException {
-        return parallelWork(threads, values, s -> s.map(f).collect(Collectors.toList()), IterativeParallelism::merge);
+        return filterMapSamePart(threads, values, s -> s.map(f).collect(Collectors.toList()));
     }
 
     /**

@@ -55,18 +55,6 @@ public class ImplementorDirectoryManager {
     }
 
     /**
-     * Getter for {@code token} implementation path
-     *
-     * @param token an instance of {@link Class} for which method generates path
-     * @return {@link String} with package name and simple name
-     */
-    public static String getImplementationPath(Class<?> token) {
-        return String.join(File.separator, token.getPackageName().split("\\.")) +
-                File.separator +
-                token.getSimpleName();
-    }
-
-    /**
      * Getter for {@link #dir}
      *
      * @return directory {@link Path} stored in this {@link ImplementorDirectoryManager}
