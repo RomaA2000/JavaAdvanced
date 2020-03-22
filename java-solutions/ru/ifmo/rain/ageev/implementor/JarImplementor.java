@@ -110,9 +110,7 @@ public class JarImplementor extends Implementor implements JarImpler {
         String[] compilerArgs = {
                 "-cp",
                 tempDirectory.toString() + File.pathSeparator + superPath.toString(),
-                tempDirectory.resolve(String.join(File.pathSeparator, token.getPackageName().split("\\.")) +
-                        File.pathSeparator +
-                        token.getSimpleName() + IMPL_SUFFIX + JAVA_EXTENSION).toString(),
+                tempDirectory.resolve(ImplementorDirectoryManager.getImplementationPath(token, File.separator) + IMPL_SUFFIX + JAVA_EXTENSION).toString(),
         };
 
         int returnCode = javaCompiler.run(null, null, null, compilerArgs);
@@ -134,13 +132,13 @@ public class JarImplementor extends Implementor implements JarImpler {
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 
         try (JarOutputStream stream = new JarOutputStream(Files.newOutputStream(jarFile), manifest)) {
-            String pathSuffix = (String.join(File.separator, token.getPackageName().split("\\.")) +
-                    File.separator + token.getSimpleName()) + IMPL_SUFFIX + CLASS_EXTENSION;
-            stream.putNextEntry(new ZipEntry(pathSuffix));
-            Files.copy(Paths.get(tempDirectory.toString(), pathSuffix), stream);
+            String implementationPath = ImplementorDirectoryManager.getImplementationPath(token, "/") + IMPL_SUFFIX + CLASS_EXTENSION;
+            stream.putNextEntry(new ZipEntry(implementationPath));
+            Files.copy(Path.of(tempDirectory.toString(), implementationPath), stream);
         } catch (IOException e) {
-            throw new ImplerException("Error making jar", e);
+            throw new ImplerException("Failed to write JAR", e);
         }
+
     }
 
     /**

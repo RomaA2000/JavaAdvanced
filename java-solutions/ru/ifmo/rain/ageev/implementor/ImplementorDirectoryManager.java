@@ -88,4 +88,17 @@ public class ImplementorDirectoryManager {
             throw new ImplerException("Can't delete directory: ", e);
         }
     }
+
+    /**
+     * Makes valid code directories.
+     *
+     * @param token {@link Class} class, which implementation is required
+     * @param separator {@link String} separator
+     * @return Path to source code as {@link String}
+     */
+    static String getImplementationPath(Class<?> token, String separator) {
+        return String.join(separator, token.getPackageName().split("\\.")) +
+                separator +
+                token.getSimpleName();
+    }
 }
