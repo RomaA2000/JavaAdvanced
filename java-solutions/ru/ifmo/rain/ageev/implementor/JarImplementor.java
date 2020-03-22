@@ -8,6 +8,7 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -81,21 +82,37 @@ public class JarImplementor extends Implementor implements JarImpler {
     private void compileClass(Class<?> token, Path tempDirectory) throws ImplerException {
         Path superPath;
         try {
-            CodeSource superCodeSource = token.getProtectionDomain().getCodeSource();
-            superPath = Path.of((superCodeSource == null) ? EMPTY_STRING : superCodeSource.getLocation().getPath());
+            CodeSource codeSource = token.getProtectionDomain().getCodeSource();
+            if (codeSource == null) {
+                throw new ImplerException("Failed to retrieve super class source code");
+            }
+            URL sourceCodeUrl = codeSource.getLocation();
+            if (sourceCodeUrl == null) {
+                throw new ImplerException("Failed to retrieve super class code source location");
+            }
+            String sourceCodePath = sourceCodeUrl.getPath();
+            if (sourceCodePath.isEmpty()) {
+                throw new ImplerException("Failed to convert source code location");
+            }
+            if (sourceCodePath.startsWith("/")) {
+                sourceCodePath = sourceCodePath.substring(1);
+            }
+            superPath = Path.of(sourceCodePath);
         } catch (InvalidPathException e) {
-            throw new ImplerException("Failed to generate valid classpath", e);
+            throw new ImplerException("Failed to retrieve super class source code");
         }
 
         JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
         if (javaCompiler == null) {
-            throw new ImplerException("No compiler provided");
+            throw new ImplerException("No Java compiler provided");
         }
 
         String[] compilerArgs = {
                 "-cp",
-                tempDirectory.toUri().toString() + File.pathSeparator + superPath.toUri().toString(),
-                Path.of(tempDirectory.toString(), ImplementorDirectoryManager.getImplementationPath(token) + IMPL_SUFFIX + JAVA_EXTENSION).toString(),
+                tempDirectory.toString() + File.pathSeparator + superPath.toString(),
+                tempDirectory.resolve(String.join(File.pathSeparator, token.getPackageName().split("\\.")) +
+                        File.pathSeparator +
+                        token.getSimpleName() + IMPL_SUFFIX + JAVA_EXTENSION).toString(),
         };
 
         int returnCode = javaCompiler.run(null, null, null, compilerArgs);
