@@ -1,12 +1,15 @@
 package ru.ifmo.rain.ageev.concurrent;
 
 import info.kgeorgiy.java.advanced.concurrent.AdvancedIP;
+import info.kgeorgiy.java.advanced.mapper.ParallelMapper;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static ru.ifmo.rain.ageev.concurrent.ThreadJoiner.joinAll;
 
 /**
  * List iterative parallelism support for operations from {@link AdvancedIP}.
@@ -15,48 +18,27 @@ import java.util.stream.Stream;
  * @version 1.0.1
  */
 public class IterativeParallelism implements AdvancedIP {
-    private static <I, M, R> R parallelWork(final int threads, final List<I> values, final Function<Stream<I>, M> work,
-                                            final Function<Stream<M>, R> merger) throws InterruptedException {
-        final List<Stream<I>> blocks = makeBlocks(threads, values);
-        final List<M> workersResults = new ArrayList<>(Collections.nCopies(blocks.size(), null));
-        final List<Thread> workers = new ArrayList<>();
-        for (int i = 0; i < blocks.size(); i++) {
-            final int idx = i;
-            final Thread thread = new Thread(() -> workersResults.set(idx, work.apply(blocks.get(idx))));
-            thread.start();
-            workers.add(thread);
-        }
-        joinAll(workers);
-        return merger.apply(workersResults.stream());
+    private final ParallelMapper mapper;
+
+    /**
+     * Default constructor.
+     * Creates an IterativeParallelism instance operating without {@link ParallelMapper}.
+     */
+    public IterativeParallelism() {
+        mapper = null;
     }
 
-    private static void joinAll(final List<Thread> workers) throws InterruptedException {
-        for (int i = 0; i < workers.size(); i++) {
-            try {
-                workers.get(i).join();
-            } catch (final InterruptedException e) {
-                final InterruptedException exception = new InterruptedException("Some threads were interrupted");
-                exception.addSuppressed(e);
-                for (int j = i; j < workers.size(); j++) {
-                    workers.get(j).interrupt();
-                }
-                for (int j = i; j < workers.size(); j++) {
-                    try {
-                        workers.get(j).join();
-                    } catch (InterruptedException er) {
-                        exception.addSuppressed(er);
-                        j--;
-                    }
-                }
-                throw exception;
-            }
-        }
+    /**
+     * Mapper constructor.
+     * Creates an IterativeParallelism instance with {@link ParallelMapper} as a core mapper.
+     *
+     * @param map {@link ParallelMapper} instance
+     */
+    public IterativeParallelism(ParallelMapper map) {
+        mapper = map;
     }
 
     private static <I> List<Stream<I>> makeBlocks(final int number, final List<I> values) {
-        if (number <= 0) {
-            throw new NullPointerException("threads count must be greater than 0");
-        }
         final List<Stream<I>> blocks = new ArrayList<>();
         final int blockSize = values.size() / number;
         final int r = values.size() % number;
@@ -76,15 +58,38 @@ public class IterativeParallelism implements AdvancedIP {
         return streams.flatMap(List::stream).collect(Collectors.toList());
     }
 
-    private static <T> T getReduce(final Stream<T> stream, final Monoid<T> monoid) {
+    private <I, M, R> R parallelWork(final int threads, final List<I> values, final Function<Stream<I>, M> work,
+                                     final Function<Stream<M>, R> merger) throws InterruptedException {
+        if (threads <= 0) {
+            throw new IllegalArgumentException("threads count must be greater than 0");
+        }
+        final List<Stream<I>> blocks = makeBlocks(threads, values);
+        final List<M> workersResults;
+        if (mapper == null) {
+            workersResults = new ArrayList<>(Collections.nCopies(blocks.size(), null));
+            final List<Thread> workers = new ArrayList<>();
+            for (int i = 0; i < blocks.size(); i++) {
+                final int idx = i;
+                Thread thread = new Thread(() -> workersResults.set(idx, work.apply(blocks.get(idx))));
+                thread.start();
+                workers.add(thread);
+            }
+            joinAll(workers);
+        } else {
+            workersResults = mapper.map(work, blocks);
+        }
+        return merger.apply(workersResults.stream());
+    }
+
+    private <T> T getReduce(final Stream<T> stream, final Monoid<T> monoid) {
         return getMapReduce(stream, monoid, Function.identity());
     }
 
-    private static <T, R> R getMapReduce(final Stream<T> stream, final Monoid<R> monoid, final Function<T, R> lift) {
+    private <T, R> R getMapReduce(final Stream<T> stream, final Monoid<R> monoid, final Function<T, R> lift) {
         return stream.map(lift).reduce(monoid.getIdentity(), monoid.getOperator());
     }
 
-    private static <I, M> List<M> filterMapSamePart(final int threads, final List<I> values, final Function<Stream<I>, List<M>> work) throws InterruptedException {
+    private <I, M> List<M> filterMapSamePart(final int threads, final List<I> values, final Function<Stream<I>, List<M>> work) throws InterruptedException {
         return parallelWork(threads, values, work, IterativeParallelism::merge);
     }
 
