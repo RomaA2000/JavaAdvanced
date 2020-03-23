@@ -15,7 +15,6 @@ javadoc -private -link https://docs.oracle.com/en/java/javase/11/docs/api/ -d $p
   "$my/ImplementorDirectoryManager.java" \
   "$my/DirectoryCleaner.java" \
   "$my/MethodHasher.java" \
-  "$my/ArgumentNumberMaker.java" \
   "$kgeorgiy/Impler.java" \
   "$kgeorgiy/JarImpler.java" \
   "$kgeorgiy/ImplerException.java"

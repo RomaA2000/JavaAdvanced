@@ -22,7 +22,7 @@ public class ImplementorDirectoryManager {
     private Path dir;
 
     /**
-     * Constructor from {@link Path} object. Creates a new instance of {@link ImplementorDirectoryManager}
+     * Constructor from {@link Path} object. Creates a new instance of this class
      *
      * @param path {@link Path} to location where to create {@link #dir}
      * @throws ImplerException if an error occurs while creating directory
@@ -56,9 +56,23 @@ public class ImplementorDirectoryManager {
     }
 
     /**
+     * Returns the path of file to be generated for token.
+     *
+     * @param token     the token go get name and packages from
+     * @param root      the directory where the path begins
+     * @param extension extension of the file to be generated
+     * @return the described instance of {@link Path}
+     */
+    public static Path getFilePath(Class<?> token, Path root, String extension) {
+        return root
+                .resolve(token.getPackageName().replace('.', File.separatorChar))
+                .resolve(Implementor.makeName(token) + extension);
+    }
+
+    /**
      * Getter for {@link #dir}
      *
-     * @return directory {@link Path} stored in this {@link ImplementorDirectoryManager}
+     * @return directory {@link Path} stored in this class
      */
     public Path getDirectory() {
         return dir;
@@ -76,19 +90,5 @@ public class ImplementorDirectoryManager {
         } catch (IOException e) {
             throw new ImplerException("Can't delete directory: ", e);
         }
-    }
-
-    /**
-     * Returns the path of file to be generated for token.
-     *
-     * @param token the token go get name and packages from
-     * @param root the directory where the path begins
-     * @param extension extension of the file to be generated
-     * @return the described instance of {@link Path}
-     */
-    public static Path getFilePath(Class<?> token, Path root, String extension) {
-        return root
-                .resolve(token.getPackageName().replace('.', File.separatorChar))
-                .resolve(Implementor.makeName(token) + extension);
     }
 }

@@ -12,7 +12,7 @@ import java.nio.file.attribute.BasicFileAttributes;
  */
 public class DirectoryCleaner extends SimpleFileVisitor<Path> {
     /**
-     * Default constructor. Creates new instance of {@link DirectoryCleaner} class
+     * Default constructor. Creates new instance of this class
      */
     DirectoryCleaner() {
         super();

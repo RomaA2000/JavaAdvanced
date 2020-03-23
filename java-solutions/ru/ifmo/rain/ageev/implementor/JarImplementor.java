@@ -24,22 +24,22 @@ import java.util.zip.ZipEntry;
 
 
 /**
- * Class implementing {@link JarImpler}. Provides public methods to implement <code>.java</code>
- * and <code>.jar</code> files for classes extending given class (or implementing given interface).
+ * Class implementing {@link JarImpler}. Provides public methods to implement {@code .java}
+ * and {@code .jar} files for classes extending given class (or implementing given interface).
  *
  * @author ageev
  * @version 1.0
  */
 public class JarImplementor extends Implementor implements JarImpler {
     /**
-     * Default constructor. Creates new instance of {@link JarImplementor}.
+     * Default constructor. Creates new instance of this class.
      */
     public JarImplementor() {
     }
 
     /**
-     * Provides console interface for {@link JarImplementor}.
-     * If 3 arguments provided <code>-jar className jarOutputPath</code> creates <code>.jar</code> file using {@link JarImpler} method {@link #implementJar(Class, Path)}
+     * Provides console interface for this class.
+     * If 3 arguments provided {@code -jar className jarOutputPath} creates {@code .jar} file using {@link JarImpler} method {@link #implementJar(Class, Path)}
      * All arguments must be not-null. If some arguments are incorrect
      * or an error occurs in runtime an information message is printed in err stream and program is aborted.
      *
@@ -74,12 +74,12 @@ public class JarImplementor extends Implementor implements JarImpler {
 
     /**
      * Compiles implemented class extending or implementing {@code token}
-     * and stores <code>.class</code> file in given {@code tempDirectory}.
+     * and stores {@code .class} file in given {@code tempDirectory}.
      * <p>
-     * Uses <code>-classpath</code> pointing to location of class or interface specified by {@code token}.
+     * Uses {@code -classpath} pointing to location of class or interface specified by {@code token}.
      *
      * @param token type token that need to be implemented
-     * @param path  to store <code>.class</code> files
+     * @param path  to store {@code .class} files
      * @throws ImplerException if an error occurs
      */
     private void compileClass(Class<?> token, Path path) throws ImplerException {
@@ -94,17 +94,17 @@ public class JarImplementor extends Implementor implements JarImpler {
             throw new ImplerException("Could not convert URL to URI", e);
         }
         int exitCode = compiler.run(null, null, null, "-cp", extendPath,
-                ImplementorDirectoryManager.getFilePath(token, path, JAVA_EXTENSION).toString());
+                ImplementorDirectoryManager.getFilePath(token, path, ".java").toString());
         if (exitCode != 0) {
             throw new ImplerException("Failed to compile code: compiler exit code is " + exitCode);
         }
     }
 
     /**
-     * Makes a <code>.jar</code> file containing sources of implemented class using {@link Manifest}.
+     * Makes a {@code .jar} file containing sources of implemented class using {@link Manifest}.
      *
-     * @param jarFile       path where  <code>.jar</code> file will be saved
-     * @param tempDirectory temporary directory where all <code>.class</code> files are stored
+     * @param jarFile       path where  {@code .jar} file will be saved
+     * @param tempDirectory temporary directory where all {@code .class} files are stored
      * @param token         type token that needs to be implemented
      * @throws ImplerException if {@link JarOutputStream} processing throws an {@link IOException}
      */
@@ -122,13 +122,13 @@ public class JarImplementor extends Implementor implements JarImpler {
     }
 
     /**
-     * Creates a <code>.jar</code> file that contains sources of class
+     * Creates a {@code .jar} file that contains sources of class
      * implemented by {@link #implement(Class, Path)}.
      * Uses temporary directory and deletes it after implementation using {@link ImplementorDirectoryManager}
      * and {@link DirectoryCleaner}.
      *
      * @param token   type token to create implementation for
-     * @param jarFile target location of <code>.jar</code> file
+     * @param jarFile target location of {@code .jar} file
      * @throws ImplerException if any error occurs during the implementation
      */
     @Override

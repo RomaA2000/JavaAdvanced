@@ -19,7 +19,7 @@ public class MethodHasher {
     private final Method method;
 
     /**
-     * Wrapping constructor. Creates new instance of {@link MethodHasher} with wrapped {@link Method} inside.
+     * Wrapping constructor. Creates new instance of this class with wrapped {@link Method} inside.
      *
      * @param method instance of {@link Method} class
      */
@@ -50,11 +50,11 @@ public class MethodHasher {
 
     /**
      * Checks if {@link #method} is equal to another object.
-     * Object is considered equal if it is an instance of {@link MethodHasher}
+     * Object is considered equal if it is an instance of this class
      * and has a wrapped {@link #method} inside with same name, parameter types and return type.
      *
      * @param o object to compare with
-     * @return <code>true</code> if objects ans method are equal, <code>false</code> otherwise
+     * @return {@code true} if objects ans method are equal, {@code false} otherwise
      */
     public boolean equals(Object o) {
         try {
