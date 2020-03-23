@@ -1,7 +1,5 @@
 package ru.ifmo.rain.ageev.concurrent;
 
-import info.kgeorgiy.java.advanced.concurrent.AdvancedIP;
-
 import java.util.List;
 
 

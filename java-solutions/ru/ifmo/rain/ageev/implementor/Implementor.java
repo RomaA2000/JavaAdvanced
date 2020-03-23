@@ -15,8 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.zip.ZipEntry;
 
 /**
  * Class implementing {@link Impler}. Provides public methods to implement {@code .java} files for classes extending given class (or implementing given interface).

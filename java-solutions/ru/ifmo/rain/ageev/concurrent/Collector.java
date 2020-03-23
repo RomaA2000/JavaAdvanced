@@ -1,7 +1,5 @@
 package ru.ifmo.rain.ageev.concurrent;
 
-import info.kgeorgiy.java.advanced.mapper.ParallelMapper;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

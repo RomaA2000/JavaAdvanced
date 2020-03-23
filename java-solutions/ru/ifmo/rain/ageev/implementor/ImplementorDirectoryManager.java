@@ -4,7 +4,6 @@ import info.kgeorgiy.java.advanced.implementor.ImplerException;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
