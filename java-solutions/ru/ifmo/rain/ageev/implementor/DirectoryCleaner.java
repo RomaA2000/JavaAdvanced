@@ -46,4 +46,3 @@ public class DirectoryCleaner extends SimpleFileVisitor<Path> {
         return FileVisitResult.CONTINUE;
     }
 }
-
