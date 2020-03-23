@@ -2,10 +2,7 @@ package ru.ifmo.rain.ageev.implementor;
 
 import info.kgeorgiy.java.advanced.implementor.Impler;
 import info.kgeorgiy.java.advanced.implementor.ImplerException;
-import info.kgeorgiy.java.advanced.implementor.JarImpler;
 
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -16,18 +13,12 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.CodeSource;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
-import java.util.jar.Attributes;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.zip.ZipEntry;
 
 /**
  * Class implementing {@link Impler}. Provides public methods to implement <code>.java</code> files for classes extending given class (or implementing given interface).
@@ -105,7 +96,7 @@ public class Implementor implements Impler {
      * @param token type token to make  {@link Path}
      * @return Path {@link String}
      */
-    static private String getPath(Class<?> token) {
+    static private String getPath(final Class<?> token) {
         return token.getPackageName().replace('.', File.separatorChar);
     }
 
@@ -115,7 +106,7 @@ public class Implementor implements Impler {
      * @param token type token to make name
      * @return Name {@link String}
      */
-    static private String getName(Class<?> token) {
+    static private String getName(final Class<?> token) {
         return token.getSimpleName() + IMPL_SUFFIX;
     }
 
@@ -126,9 +117,9 @@ public class Implementor implements Impler {
      * @param str a {@link String} string to be encoded
      * @return a {@link String} of unicode {@code arg}
      */
-    private static String encode(String str) {
-        StringBuilder builder = new StringBuilder();
-        for (char c : str.toCharArray()) {
+    private static String encode(final String str) {
+        final StringBuilder builder = new StringBuilder();
+        for (final char c : str.toCharArray()) {
             builder.append(c < 128 ? String.valueOf(c) : String.format("\\u%04x", (int) c));
         }
         return builder.toString();
@@ -142,11 +133,11 @@ public class Implementor implements Impler {
      *
      * @param args command line arguments for application
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         if (args == null || args.length == 2) {
             System.err.println("Invalid arguments number, expected <class name> <output path>");
         } else {
-            for (String arg : args) {
+            for (final String arg : args) {
                 if (arg == null) {
                     System.err.println("Not null args expected");
                     return;
@@ -154,11 +145,11 @@ public class Implementor implements Impler {
             }
             try {
                 new Implementor().implement(Class.forName(args[0]), Path.of(args[1]));
-            } catch (ClassNotFoundException e) {
+            } catch (final ClassNotFoundException e) {
                 System.err.print("Invalid class name");
-            } catch (InvalidPathException e) {
+            } catch (final InvalidPathException e) {
                 System.err.print("Invalid path");
-            } catch (ImplerException e) {
+            } catch (final ImplerException e) {
                 System.err.print("Can't create java file");
             }
         }
@@ -172,27 +163,33 @@ public class Implementor implements Impler {
      * @throws ImplerException if any error occurs during code generation
      */
     @Override
-    public void implement(Class<?> token, Path root) throws ImplerException {
+    public void implement(final Class<?> token, final Path root) throws ImplerException {
         if ((token == null) || (root == null)) {
             throw new ImplerException("Null argument(s) given");
         }
-        Path toGo;
+        final Path toGo;
         try {
             toGo = Path.of(root.toString(), getPath(token), getName(token) + JAVA_EXTENSION);
-        } catch (InvalidPathException e) {
+        } catch (final InvalidPathException e) {
             throw new ImplerException("Invalid path", e);
         }
         ImplementorDirectoryManager.createDirectoriesOnPath(toGo);
-        try (BufferedWriter writer = Files.newBufferedWriter(toGo)) {
-            if (token.isPrimitive() || token.isArray() || Modifier.isPrivate(token.getModifiers()) || Modifier.isFinal(token.getModifiers()) || token == Enum.class) {
+        try (final BufferedWriter writer = Files.newBufferedWriter(toGo)) {
+            if (
+                    token.isPrimitive()
+                            || token.isArray()
+                            || Modifier.isPrivate(token.getModifiers())
+                            || Modifier.isFinal(token.getModifiers())
+                            || token == Enum.class
+            ) {
                 throw new ImplerException("Unsupported class");
             }
             try {
                 writer.write(encode(getClass(token)));
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new ImplerException("Error writing in file", e);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ImplerException("Error opening file", e);
         }
     }
@@ -204,7 +201,7 @@ public class Implementor implements Impler {
      * @return {@link String} of class code for {@code token}
      * @throws ImplerException if any error occurs during code generation
      */
-    private String getClass(Class<?> token) throws ImplerException {
+    private String getClass(final Class<?> token) throws ImplerException {
         return makeBlockByLineSeparator(makePackage(token), makeClass(token));
     }
 
@@ -215,7 +212,7 @@ public class Implementor implements Impler {
      * @param strings   an array of strings to be written dividing by a separator
      * @return {@link String} of concatenated with {@code separator} {@code strings}
      */
-    private String makeBlock(final String separator, String... strings) {
+    private String makeBlock(final String separator, final String... strings) {
         return pack(separator, strings, Function.identity());
     }
 
@@ -225,7 +222,7 @@ public class Implementor implements Impler {
      * @param strings an array of {@link String}s to be written dividing by a {@link #SPACE}
      * @return {@link String} of concatenated with {@code separator} {@link #SPACE}
      */
-    private String makeBlockBySpace(String... strings) {
+    private String makeBlockBySpace(final String... strings) {
         return makeBlock(SPACE, strings);
     }
 
@@ -235,7 +232,7 @@ public class Implementor implements Impler {
      * @param strings an array of {@link String}s to be written
      * @return {@link String} of concatenated with {@code separator} {@link #LINE_SEPARATOR}
      */
-    private String makeBlockByLineSeparator(String... strings) {
+    private String makeBlockByLineSeparator(final String... strings) {
         return makeBlock(LINE_SEPARATOR, strings);
     }
 
@@ -261,7 +258,7 @@ public class Implementor implements Impler {
      * @return a {@link String} code of method declaration and body
      * @see #makeMethodConstructorSamePart(Executable, String, String)
      */
-    private String makeMethod(Method method) {
+    private String makeMethod(final Method method) {
         return makeMethodConstructorSamePart(method, makeBlockBySpace(method.getReturnType().getCanonicalName(),
                 method.getName() + makeArguments(method)), makeMethodBody(method));
     }
@@ -274,7 +271,7 @@ public class Implementor implements Impler {
      * @param body       a body of building code
      * @return a {@link String} code of method or constructor declaration and body
      */
-    private String makeMethodConstructorSamePart(Executable executable, String signature, String body) {
+    private String makeMethodConstructorSamePart(final Executable executable, final String signature, final String body) {
         return makeBlockBySpace(
                 makeExecutableModifiers(executable),
                 signature,
@@ -296,7 +293,7 @@ public class Implementor implements Impler {
      * @return a {@link String} containing new class code
      * @throws ImplerException if error occurred while generating code
      */
-    private String makeClass(Class<?> token) throws ImplerException {
+    private String makeClass(final Class<?> token) throws ImplerException {
         return makeBlockByLineSeparator(
                 makeClassDef(token),
                 BRACE_OPEN,
@@ -312,7 +309,7 @@ public class Implementor implements Impler {
      * @param token instance of given class {@link Class} object
      * @return a {@link String} containing new class declaration
      */
-    private String makeClassDef(Class<?> token) {
+    private String makeClassDef(final Class<?> token) {
         return makeBlockBySpace(
                 "public class",
                 makeFullName(token));
@@ -324,7 +321,7 @@ public class Implementor implements Impler {
      * @param token instance of given class {@link Class} object
      * @return a {@link String} containing new class name
      */
-    private String makeName(Class<?> token) {
+    private String makeName(final Class<?> token) {
         return token.getSimpleName() + IMPL_SUFFIX;
     }
 
@@ -335,7 +332,7 @@ public class Implementor implements Impler {
      * @param token instance of given class {@link Class} object
      * @return a {@link String} containing class name with superclass declaration
      */
-    private String makeFullName(Class<?> token) {
+    private String makeFullName(final Class<?> token) {
         return makeBlockBySpace(makeName(token), token.isInterface() ? "implements" : "extends", token.getCanonicalName());
     }
 
@@ -346,7 +343,7 @@ public class Implementor implements Impler {
      * @param modifiers integer modifiers mask
      * @return a {@link String} representing all modifiers but not abstract
      */
-    private String makeModifiers(int modifiers) {
+    private String makeModifiers(final int modifiers) {
         return Modifier.toString(modifiers & ~Modifier.ABSTRACT);
     }
 
@@ -357,12 +354,12 @@ public class Implementor implements Impler {
      * @return a {@link String} representing all non private constructors
      * @throws ImplerException if there is no non-private constructors
      */
-    private String makeConstructors(Class<?> token) throws ImplerException {
+    private String makeConstructors(final Class<?> token) throws ImplerException {
         if (token.isInterface()) {
             return EMPTY_STRING;
         }
-        Constructor<?>[] constructors = token.getDeclaredConstructors();
-        List<Constructor<?>> constructorsList =
+        final Constructor<?>[] constructors = token.getDeclaredConstructors();
+        final List<Constructor<?>> constructorsList =
                 Arrays.stream(constructors)
                         .filter(p -> !Modifier.isPrivate(p.getModifiers()))
                         .collect(Collectors.toList());
@@ -382,7 +379,7 @@ public class Implementor implements Impler {
      * @return a {@link String} representing all modifiers of given {@code executable} if they are
      * not abstract, native or transient
      */
-    private String makeExecutableModifiers(Executable executable) {
+    private String makeExecutableModifiers(final Executable executable) {
         return makeModifiers(executable.getModifiers() & ~Modifier.NATIVE & ~Modifier.TRANSIENT);
     }
 
@@ -392,8 +389,8 @@ public class Implementor implements Impler {
      * @param token instance of given class {@link Class} object
      * @return a {@link String} containing new class package declaration or {@link #EMPTY_STRING}
      */
-    private String makePackage(Class<?> token) {
-        String packageName = token.getPackageName();
+    private String makePackage(final Class<?> token) {
+        final String packageName = token.getPackageName();
         return packageName.isEmpty() ? EMPTY_STRING : makeBlockBySpace("package", packageName) + LINE_END;
     }
 
@@ -406,7 +403,7 @@ public class Implementor implements Impler {
      * @return a {@link String} code of constructor declaration and body
      * @see #makeMethodConstructorSamePart(Executable, String, String)
      */
-    private String constructorMaker(Constructor<?> constructor) {
+    private String constructorMaker(final Constructor<?> constructor) {
         return makeMethodConstructorSamePart(constructor,
                 makeName(constructor.getDeclaringClass()) + makeArguments(constructor),
                 makeConstructorBody(constructor));
@@ -418,7 +415,7 @@ public class Implementor implements Impler {
      * @param constructor an instance of {@link Constructor}
      * @return a {@link String} code of new class constructor body
      */
-    private String makeConstructorBody(Constructor<?> constructor) {
+    private String makeConstructorBody(final Constructor<?> constructor) {
         return "super" + makeArgumentsNames(constructor) + LINE_END;
     }
 
@@ -428,7 +425,7 @@ public class Implementor implements Impler {
      * @param executable an instance of {@link Executable}
      * @return a {@link String} representing all throws from this {@code executable}
      */
-    private String makeExceptions(Executable executable) {
+    private String makeExceptions(final Executable executable) {
         return checkNotEmpty("throws", packItems(executable.getExceptionTypes(), Class::getCanonicalName));
     }
 
@@ -442,8 +439,8 @@ public class Implementor implements Impler {
      * @param <T>       type of given elements
      * @return a {@link String} containing all transformed {@code elements} separated by {@code separator}
      */
-    private <T> String pack(String separator, T[] elements, Function<T, String> transform) {
-        String[] strings = new String[elements.length];
+    private <T> String pack(final String separator, final T[] elements, final Function<T, String> transform) {
+        final String[] strings = new String[elements.length];
         IntStream.range(0, elements.length).forEachOrdered(i ->
                 strings[i] = transform.apply(elements[i])
         );
@@ -458,7 +455,7 @@ public class Implementor implements Impler {
      * @param <T>       type of given elements
      * @return a {@link String} containing all transformed {@code elements} separated by {@link #ARG_SEPARATOR}
      */
-    private <T> String packItems(T[] items, Function<T, String> transform) {
+    private <T> String packItems(final T[] items, final Function<T, String> transform) {
         return pack(ARG_SEPARATOR, items, transform);
     }
 
@@ -471,7 +468,7 @@ public class Implementor implements Impler {
      * @param executable an instance of {@link Executable} which is a method or a constructor
      * @return a {@link String} representing this {@code executable} arguments
      */
-    private String makeArgumentsNames(Executable executable) {
+    private String makeArgumentsNames(final Executable executable) {
         return makeArgumentsNamesByFunc(executable, t -> SPACE);
     }
 
@@ -485,8 +482,8 @@ public class Implementor implements Impler {
      * @param executable an instance of {@link Executable} which is a method or a constructor
      * @return a {@link String} representing this {@code executable} arguments
      */
-    private String makeArgumentsNamesByFunc(Executable executable, Function<Class<?>, String> transform) {
-        ArgumentNumberMaker number = new ArgumentNumberMaker();
+    private String makeArgumentsNamesByFunc(final Executable executable, final Function<Class<?>, String> transform) {
+        final ArgumentNumberMaker number = new ArgumentNumberMaker();
         return BRACKET_OPEN +
                 packItems(executable.getParameterTypes(), t -> makeBlockBySpace(transform.apply(t), "variable" + number.get()))
                 + BRACKET_CLOSE;
@@ -501,7 +498,7 @@ public class Implementor implements Impler {
      * @param executable an instance of {@link Executable} which is a method or a constructor
      * @return a {@link String} representing this {@code executable} arguments
      */
-    private String makeArguments(Executable executable) {
+    private String makeArguments(final Executable executable) {
         return makeArgumentsNamesByFunc(executable, Class::getCanonicalName);
     }
 
@@ -515,7 +512,7 @@ public class Implementor implements Impler {
      * @return a {@link String} code of all superclasses' abstract methods separated by {@link #LINE_SEPARATOR}
      */
     private String makeAbstractMethods(Class<?> token) {
-        HashSet<MethodHasher> methods = new HashSet<>();
+        final HashSet<MethodHasher> methods = new HashSet<>();
         makeAbstractMethodsOneClass(token.getMethods(), methods);
         for (; token != null; token = token.getSuperclass()) {
             makeAbstractMethodsOneClass(token.getDeclaredMethods(), methods);
@@ -531,7 +528,7 @@ public class Implementor implements Impler {
      * @param methods       an array of {@link Method}s
      * @param collectorNeed a {@link HashSet} of {@link MethodHasher}
      */
-    private void makeAbstractMethodsOneClass(Method[] methods, HashSet<MethodHasher> collectorNeed) {
+    private void makeAbstractMethodsOneClass(final Method[] methods, final HashSet<MethodHasher> collectorNeed) {
         Arrays.stream(methods)
                 .map(MethodHasher::new)
                 .collect(Collectors.toCollection(() -> collectorNeed));
@@ -544,7 +541,7 @@ public class Implementor implements Impler {
      * @param method an instance of {@link Method}
      * @return a {@link String} representation of new class method body
      */
-    private String makeMethodBody(Method method) {
+    private String makeMethodBody(final Method method) {
         return makeBlockBySpace("return", makeValue(method.getReturnType()), LINE_END);
     }
 
@@ -554,7 +551,7 @@ public class Implementor implements Impler {
      * @param token some method return value type
      * @return a {@link String} default return value of this type
      */
-    private String makeValue(Class<?> token) {
+    private String makeValue(final Class<?> token) {
         if (!token.isPrimitive()) {
             return "null";
         } else if (token.equals(boolean.class)) {

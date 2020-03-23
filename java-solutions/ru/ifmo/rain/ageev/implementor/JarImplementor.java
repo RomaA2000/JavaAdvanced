@@ -20,6 +20,7 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 
 
+// :NOTE: Использование <code>
 /**
  * Class implementing {@link JarImpler}. Provides public methods to implement <code>.java</code>
  * and <code>.jar</code> files for classes extending given class (or implementing given interface).
@@ -34,6 +35,7 @@ public class JarImplementor extends Implementor implements JarImpler {
     public JarImplementor() {
     }
 
+    // :NOTE: Ссылки на себя
     /**
      * Provides console interface for {@link JarImplementor}.
      * If 3 arguments provided <code>-jar className jarOutputPath</code> creates <code>.jar</code> file using {@link JarImpler} method {@link #implementJar(Class, Path)}
@@ -42,11 +44,11 @@ public class JarImplementor extends Implementor implements JarImpler {
      *
      * @param args command line arguments for application
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         if (args == null || args.length == 3) {
             System.err.println("Invalid arguments number, expected -jar <class name> <output path>");
         } else {
-            for (String arg : args) {
+            for (final String arg : args) {
                 if (arg == null) {
                     System.err.println("Not null args expected");
                     return;
@@ -58,11 +60,11 @@ public class JarImplementor extends Implementor implements JarImpler {
                 } else {
                     new JarImplementor().implementJar(Class.forName(args[1]), Path.of(args[2]));
                 }
-            } catch (ClassNotFoundException e) {
+            } catch (final ClassNotFoundException e) {
                 System.err.print("Invalid class name");
-            } catch (InvalidPathException e) {
+            } catch (final InvalidPathException e) {
                 System.err.print("Invalid path");
-            } catch (ImplerException e) {
+            } catch (final ImplerException e) {
                 System.err.print("Can't create java file");
             }
         }
@@ -79,14 +81,14 @@ public class JarImplementor extends Implementor implements JarImpler {
      * @param tempDirectory directory to store <code>.class</code> files
      * @throws ImplerException if an error occurs
      */
-    private void compileClass(Class<?> token, Path tempDirectory) throws ImplerException {
-        Path superPath;
+    private void compileClass(final Class<?> token, final Path tempDirectory) throws ImplerException {
+        final Path superPath;
         try {
-            CodeSource codeSource = token.getProtectionDomain().getCodeSource();
+            final CodeSource codeSource = token.getProtectionDomain().getCodeSource();
             if (codeSource == null) {
                 throw new ImplerException("Failed to retrieve super class source code");
             }
-            URL sourceCodeUrl = codeSource.getLocation();
+            final URL sourceCodeUrl = codeSource.getLocation();
             if (sourceCodeUrl == null) {
                 throw new ImplerException("Failed to retrieve super class code source location");
             }
@@ -98,22 +100,22 @@ public class JarImplementor extends Implementor implements JarImpler {
                 sourceCodePath = sourceCodePath.substring(1);
             }
             superPath = Path.of(sourceCodePath);
-        } catch (InvalidPathException e) {
+        } catch (final InvalidPathException e) {
             throw new ImplerException("Failed to retrieve super");
         }
 
-        JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
+        final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
         if (javaCompiler == null) {
             throw new ImplerException("No Java compiler provided in your system");
         }
 
-        String[] compilerArgs = {
+        final String[] compilerArgs = {
                 "-cp",
                 tempDirectory.toString() + File.pathSeparator + superPath.toString(),
                 tempDirectory.resolve(ImplementorDirectoryManager.getImplementationPath(token, File.separator) + IMPL_SUFFIX + JAVA_EXTENSION).toString(),
         };
 
-        int returnCode = javaCompiler.run(null, null, null, compilerArgs);
+        final int returnCode = javaCompiler.run(null, null, null, compilerArgs);
         if (returnCode != 0) {
             throw new ImplerException("Implementation compilation returned non-zero code " + returnCode);
         }
@@ -127,15 +129,15 @@ public class JarImplementor extends Implementor implements JarImpler {
      * @param token         type token that needs to be implemented
      * @throws ImplerException if {@link JarOutputStream} processing throws an {@link IOException}
      */
-    private void makeJar(Path jarFile, Path tempDirectory, Class<?> token) throws ImplerException {
-        Manifest manifest = new Manifest();
+    private void makeJar(final Path jarFile, final Path tempDirectory, final Class<?> token) throws ImplerException {
+        final Manifest manifest = new Manifest();
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 
-        try (JarOutputStream stream = new JarOutputStream(Files.newOutputStream(jarFile), manifest)) {
-            String implementationPath = ImplementorDirectoryManager.getImplementationPath(token, "/") + IMPL_SUFFIX + CLASS_EXTENSION;
+        try (final JarOutputStream stream = new JarOutputStream(Files.newOutputStream(jarFile), manifest)) {
+            final String implementationPath = ImplementorDirectoryManager.getImplementationPath(token, "/") + IMPL_SUFFIX + CLASS_EXTENSION;
             stream.putNextEntry(new ZipEntry(implementationPath));
             Files.copy(Path.of(tempDirectory.toString(), implementationPath), stream);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ImplerException("Failed to write JAR", e);
         }
 
@@ -152,12 +154,12 @@ public class JarImplementor extends Implementor implements JarImpler {
      * @throws ImplerException if any error occurs during the implementation
      */
     @Override
-    public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
+    public void implementJar(final Class<?> token, final Path jarFile) throws ImplerException {
         if (token == null || jarFile == null) {
             throw new ImplerException("Not null arguments expected");
         }
         ImplementorDirectoryManager.createDirectoriesOnPath(jarFile.normalize());
-        ImplementorDirectoryManager directoryManager = new ImplementorDirectoryManager(jarFile.toAbsolutePath().getParent());
+        final ImplementorDirectoryManager directoryManager = new ImplementorDirectoryManager(jarFile.toAbsolutePath().getParent());
         try {
             implement(token, directoryManager.getDirectory());
             compileClass(token, directoryManager.getDirectory());
