@@ -4,6 +4,7 @@ import info.kgeorgiy.java.advanced.implementor.ImplerException;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,7 +32,7 @@ public class ImplementorDirectoryManager {
             throw new ImplerException("Not null directory expected");
         }
         try {
-            dir = Files.createTempDirectory(path.toAbsolutePath(), "dir");
+            dir = Files.createTempDirectory(path.toAbsolutePath().getParent(), "dir");
         } catch (IOException e) {
             throw new ImplerException("Unable to create directory:" + e.getMessage(), e);
         }
@@ -78,15 +79,16 @@ public class ImplementorDirectoryManager {
     }
 
     /**
-     * Makes valid code directories.
+     * Returns the path of file to be generated for token.
      *
-     * @param token {@link Class} class, which implementation is required
-     * @param separator {@link String} separator
-     * @return Path to source code as {@link String}
+     * @param token the token go get name and packages from
+     * @param root the directory where the path begins
+     * @param extension extension of the file to be generated
+     * @return the described instance of {@link Path}
      */
-    static String getImplementationPath(Class<?> token, String separator) {
-        return String.join(separator, token.getPackageName().split("\\.")) +
-                separator +
-                token.getSimpleName();
+    public static Path getFilePath(Class<?> token, Path root, String extension) {
+        return root
+                .resolve(token.getPackageName().replace('.', File.separatorChar))
+                .resolve(Implementor.makeName(token) + extension);
     }
 }

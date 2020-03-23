@@ -2,10 +2,7 @@ package ru.ifmo.rain.ageev.implementor;
 
 import info.kgeorgiy.java.advanced.implementor.Impler;
 import info.kgeorgiy.java.advanced.implementor.ImplerException;
-import info.kgeorgiy.java.advanced.implementor.JarImpler;
 
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -16,15 +13,10 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.CodeSource;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
-import java.util.jar.Attributes;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.zip.ZipEntry;
@@ -162,6 +154,16 @@ public class Implementor implements Impler {
                 System.err.print("Can't create java file");
             }
         }
+    }
+
+    /**
+     * Makes a class name of {@code token} with Impl suffix.
+     *
+     * @param token instance of given class {@link Class} object
+     * @return a {@link String} containing new class name
+     */
+    protected static String makeName(Class<?> token) {
+        return token.getSimpleName() + IMPL_SUFFIX;
     }
 
     /**
@@ -314,18 +316,8 @@ public class Implementor implements Impler {
      */
     private String makeClassDef(Class<?> token) {
         return makeBlockBySpace(
-                "public class",
+                "public", "class",
                 makeFullName(token));
-    }
-
-    /**
-     * Makes a class name of {@code token} with Impl suffix.
-     *
-     * @param token instance of given class {@link Class} object
-     * @return a {@link String} containing new class name
-     */
-    private String makeName(Class<?> token) {
-        return token.getSimpleName() + IMPL_SUFFIX;
     }
 
     /**

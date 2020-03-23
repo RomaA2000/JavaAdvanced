@@ -8,12 +8,15 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -75,47 +78,25 @@ public class JarImplementor extends Implementor implements JarImpler {
      * <p>
      * Uses <code>-classpath</code> pointing to location of class or interface specified by {@code token}.
      *
-     * @param token         type token that need to be implemented
-     * @param tempDirectory directory to store <code>.class</code> files
+     * @param token type token that need to be implemented
+     * @param path  to store <code>.class</code> files
      * @throws ImplerException if an error occurs
      */
-    private void compileClass(Class<?> token, Path tempDirectory) throws ImplerException {
-        Path superPath;
+    private void compileClass(Class<?> token, Path path) throws ImplerException {
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        if (compiler == null) {
+            throw new ImplerException("Failed to get the system compiler");
+        }
+        String extendPath;
         try {
-            CodeSource codeSource = token.getProtectionDomain().getCodeSource();
-            if (codeSource == null) {
-                throw new ImplerException("Failed to retrieve super class source code");
-            }
-            URL sourceCodeUrl = codeSource.getLocation();
-            if (sourceCodeUrl == null) {
-                throw new ImplerException("Failed to retrieve super class code source location");
-            }
-            String sourceCodePath = sourceCodeUrl.getPath();
-            if (sourceCodePath.isEmpty()) {
-                throw new ImplerException("Failed to convert source code location");
-            }
-            if (sourceCodePath.startsWith("/")) {
-                sourceCodePath = sourceCodePath.substring(1);
-            }
-            superPath = Path.of(sourceCodePath);
-        } catch (InvalidPathException e) {
-            throw new ImplerException("Failed to retrieve super");
+            extendPath = Path.of(token.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
+        } catch (URISyntaxException e) {
+            throw new ImplerException("Could not convert URL to URI", e);
         }
-
-        JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
-        if (javaCompiler == null) {
-            throw new ImplerException("No Java compiler provided in your system");
-        }
-
-        String[] compilerArgs = {
-                "-cp",
-                tempDirectory.toString() + File.pathSeparator + superPath.toString(),
-                tempDirectory.resolve(ImplementorDirectoryManager.getImplementationPath(token, File.separator) + IMPL_SUFFIX + JAVA_EXTENSION).toString(),
-        };
-
-        int returnCode = javaCompiler.run(null, null, null, compilerArgs);
-        if (returnCode != 0) {
-            throw new ImplerException("Implementation compilation returned non-zero code " + returnCode);
+        int exitCode = compiler.run(null, null, null, "-cp", extendPath,
+                ImplementorDirectoryManager.getFilePath(token, path, JAVA_EXTENSION).toString());
+        if (exitCode != 0) {
+            throw new ImplerException("Failed to compile code: compiler exit code is " + exitCode);
         }
     }
 
@@ -128,17 +109,16 @@ public class JarImplementor extends Implementor implements JarImpler {
      * @throws ImplerException if {@link JarOutputStream} processing throws an {@link IOException}
      */
     private void makeJar(Path jarFile, Path tempDirectory, Class<?> token) throws ImplerException {
-        Manifest manifest = new Manifest();
+        final Manifest manifest = new Manifest();
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 
-        try (JarOutputStream stream = new JarOutputStream(Files.newOutputStream(jarFile), manifest)) {
-            String implementationPath = ImplementorDirectoryManager.getImplementationPath(token, "/") + IMPL_SUFFIX + CLASS_EXTENSION;
-            stream.putNextEntry(new ZipEntry(implementationPath));
-            Files.copy(Path.of(tempDirectory.toString(), implementationPath), stream);
-        } catch (IOException e) {
-            throw new ImplerException("Failed to write JAR", e);
+        try (final JarOutputStream jos = new JarOutputStream(Files.newOutputStream(jarFile), manifest)) {
+            final String name = token.getPackageName().replace('.', '/') + "/" + makeName(token) + ".class";
+            jos.putNextEntry(new ZipEntry(name));
+            Files.copy(Paths.get(tempDirectory.toString(), name), jos);
+        } catch (final IOException e) {
+            throw new ImplerException(e.getMessage());
         }
-
     }
 
     /**
