@@ -89,13 +89,10 @@ public class IterativeParallelism implements AdvancedIP {
         return stream.map(lift).reduce(monoid.getIdentity(), monoid.getOperator());
     }
 
-    private <I, M> List<M> filterMapSamePart(final int threads, final List<I> values, final Function<Stream<I>, List<M>> work) throws InterruptedException {
-        return parallelWork(threads, values, work, IterativeParallelism::merge);
+    private <I, M> List<M> filterMapSamePart(final int threads, final List<I> values, final Function<Stream<I>, Stream<M>> work) throws InterruptedException {
+        return parallelWork(threads, values, s -> work.apply(s).collect(Collectors.toList()), IterativeParallelism::merge);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String join(final int threads, final List<?> values) throws InterruptedException {
         return parallelWork(threads, values,
@@ -103,41 +100,26 @@ public class IterativeParallelism implements AdvancedIP {
                 s -> s.collect(Collectors.joining()));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T> List<T> filter(final int threads, final List<? extends T> values, final Predicate<? super T> predicate) throws InterruptedException {
-        return filterMapSamePart(threads, values, s -> s.filter(predicate).collect(Collectors.toList()));
+        return this.<T, T>filterMapSamePart(threads, values, s -> s.filter(predicate));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T, U> List<U> map(final int threads, final List<? extends T> values, final Function<? super T, ? extends U> f) throws InterruptedException {
-        return filterMapSamePart(threads, values, s -> s.map(f).collect(Collectors.toList()));
+        return filterMapSamePart(threads, values, s -> s.map(f));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T> T maximum(final int threads, final List<? extends T> values, final Comparator<? super T> comparator) throws InterruptedException {
         return minimum(threads, values, comparator.reversed());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T> T minimum(final int threads, final List<? extends T> values, final Comparator<? super T> comparator) throws InterruptedException {
         return minMaxSameReducePart(threads, values, s -> s.min(comparator).orElse(null));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T> boolean all(final int threads, final List<? extends T> values, final Predicate<? super T> predicate) throws InterruptedException {
         return parallelWork(threads, values,
@@ -145,9 +127,6 @@ public class IterativeParallelism implements AdvancedIP {
                 s -> s.allMatch(Boolean::booleanValue));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T> boolean any(final int threads, final List<? extends T> values, final Predicate<? super T> predicate) throws InterruptedException {
         return !all(threads, values, predicate.negate());
@@ -157,17 +136,11 @@ public class IterativeParallelism implements AdvancedIP {
         return parallelWork(threads, values, comparator, comparator);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T> T reduce(final int threads, final List<T> values, final Monoid<T> monoid) throws InterruptedException {
         return minMaxSameReducePart(threads, values, s -> getReduce(s, monoid));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T, R> R mapReduce(final int threads, final List<T> values, final Function<T, R> lift, final Monoid<R> monoid) throws InterruptedException {
         return parallelWork(threads, values, s -> getMapReduce(s, monoid, lift), s -> getReduce(s, monoid));
