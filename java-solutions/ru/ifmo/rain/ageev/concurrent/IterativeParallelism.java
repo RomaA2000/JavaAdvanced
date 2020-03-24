@@ -82,12 +82,12 @@ public class IterativeParallelism implements AdvancedIP {
         return merger.apply(workersResults.stream());
     }
 
-    private <T> T getReduce(final Stream<T> stream, final Monoid<T> monoid) {
-        return getMapReduce(stream, monoid, Function.identity());
+    private <T> Function<Stream<T>, T> getReduce(final Monoid<T> monoid) {
+        return getMapReduce(monoid, Function.identity());
     }
 
-    private <T, R> R getMapReduce(final Stream<T> stream, final Monoid<R> monoid, final Function<T, R> lift) {
-        return stream.map(lift).reduce(monoid.getIdentity(), monoid.getOperator());
+    private <T, R> Function<Stream<T>, R> getMapReduce(final Monoid<R> monoid, final Function<T, R> lift) {
+        return stream -> stream.map(lift).reduce(monoid.getIdentity(), monoid.getOperator());
     }
 
     private <I, M> List<M> filterMapSamePart(final int threads, final List<? extends I> values, final Function<Stream<? extends I>, Stream<? extends M>> work) throws InterruptedException {
@@ -139,11 +139,11 @@ public class IterativeParallelism implements AdvancedIP {
 
     @Override
     public <T> T reduce(final int threads, final List<T> values, final Monoid<T> monoid) throws InterruptedException {
-        return minMaxSameReducePart(threads, values, s -> getReduce(s, monoid));
+        return minMaxSameReducePart(threads, values, getReduce(monoid));
     }
 
     @Override
     public <T, R> R mapReduce(final int threads, final List<T> values, final Function<T, R> lift, final Monoid<R> monoid) throws InterruptedException {
-        return parallelWork(threads, values, s -> getMapReduce(s, monoid, lift), s -> getReduce(s, monoid));
+        return parallelWork(threads, values, getMapReduce(monoid, lift), getReduce(monoid));
     }
 }
