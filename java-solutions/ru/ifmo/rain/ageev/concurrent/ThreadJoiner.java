@@ -15,7 +15,7 @@ public class ThreadJoiner {
             try {
                 workers.get(i).join();
             } catch (final InterruptedException e) {
-                InterruptedException   exception = new InterruptedException("Some threads were interrupted");
+                InterruptedException exception = new InterruptedException("Some threads were interrupted");
                 exception.addSuppressed(e);
                 for (int j = i; j < workers.size(); j++) {
                     workers.get(j).interrupt();
