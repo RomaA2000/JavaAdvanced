@@ -2,6 +2,7 @@ package ru.ifmo.rain.ageev.implementor;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Hash providing class method wrapper. Custom equality check for {@link Method}.
@@ -43,9 +44,7 @@ public class MethodHasher {
      * @return integer value
      */
     public int hashCode() {
-        return method.getName().hashCode() +
-                HASH_PRIME_NUMBER * method.getReturnType().hashCode() +
-                HASH_PRIME_NUMBER * HASH_PRIME_NUMBER * Arrays.hashCode(method.getParameterTypes());
+        return Objects.hash(method.getName(), Arrays.hashCode(method.getParameterTypes()));
     }
 
     /**
@@ -60,7 +59,7 @@ public class MethodHasher {
         try {
             MethodHasher m = (MethodHasher) o;
             return method.getName().equals(m.get().getName()) &&
-                    method.getReturnType().equals(m.get().getReturnType()) &&
+//                    method.getReturnType().equals(m.get().getReturnType()) &&
                     Arrays.equals(method.getParameterTypes(), m.get().getParameterTypes());
         } catch (ClassCastException e) {
             return false;

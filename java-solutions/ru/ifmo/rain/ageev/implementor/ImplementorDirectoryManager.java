@@ -19,7 +19,7 @@ public class ImplementorDirectoryManager {
     /**
      * Directory {@link Path} object where all files created by the {@link JarImplementor} will be stored
      */
-    private Path dir;
+    private final Path dir;
 
     /**
      * Constructor from {@link Path} object. Creates a new instance of this class
@@ -27,13 +27,13 @@ public class ImplementorDirectoryManager {
      * @param path {@link Path} to location where to create {@link #dir}
      * @throws ImplerException if an error occurs while creating directory
      */
-    ImplementorDirectoryManager(Path path) throws ImplerException {
+    ImplementorDirectoryManager(final Path path) throws ImplerException {
         if (path == null) {
             throw new ImplerException("Not null directory expected");
         }
         try {
             dir = Files.createTempDirectory(path.toAbsolutePath().getParent(), "dir");
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ImplerException("Unable to create directory:" + e.getMessage(), e);
         }
     }
@@ -45,12 +45,12 @@ public class ImplementorDirectoryManager {
      * @throws ImplerException if null path given or an error occurs while creating directories leading to given {@code path}
      * @see Path#getParent()
      */
-    public static void createDirectoriesOnPath(Path path) throws ImplerException {
+    public static void createDirectoriesOnPath(final Path path) throws ImplerException {
         try {
             Files.createDirectories(path.getParent());
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ImplerException("Unable to create directories on path", e);
-        } catch (NullPointerException e) {
+        } catch (final NullPointerException e) {
             throw new ImplerException("Not null path expected", e);
         }
     }
@@ -63,7 +63,7 @@ public class ImplementorDirectoryManager {
      * @param extension extension of the file to be generated
      * @return the described instance of {@link Path}
      */
-    public static Path getFilePath(Class<?> token, Path root, String extension) {
+    public static Path getFilePath(final Class<?> token, final Path root, final String extension) {
         return root
                 .resolve(token.getPackageName().replace('.', File.separatorChar))
                 .resolve(Implementor.makeName(token) + extension);
@@ -87,7 +87,7 @@ public class ImplementorDirectoryManager {
     public void cleanDirectory() throws ImplerException {
         try {
             Files.walkFileTree(dir, new DirectoryCleaner());
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ImplerException("Can't delete directory: ", e);
         }
     }

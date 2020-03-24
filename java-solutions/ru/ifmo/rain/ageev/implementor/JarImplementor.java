@@ -45,11 +45,11 @@ public class JarImplementor extends Implementor implements JarImpler {
      *
      * @param args command line arguments for application
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         if (args == null || args.length == 3) {
             System.err.println("Invalid arguments number, expected -jar <class name> <output path>");
         } else {
-            for (String arg : args) {
+            for (final String arg : args) {
                 if (arg == null) {
                     System.err.println("Not null args expected");
                     return;
@@ -61,11 +61,11 @@ public class JarImplementor extends Implementor implements JarImpler {
                 } else {
                     new JarImplementor().implementJar(Class.forName(args[1]), Path.of(args[2]));
                 }
-            } catch (ClassNotFoundException e) {
+            } catch (final ClassNotFoundException e) {
                 System.err.print("Invalid class name");
-            } catch (InvalidPathException e) {
+            } catch (final InvalidPathException e) {
                 System.err.print("Invalid path");
-            } catch (ImplerException e) {
+            } catch (final ImplerException e) {
                 System.err.print("Can't create java file");
             }
         }
@@ -82,18 +82,18 @@ public class JarImplementor extends Implementor implements JarImpler {
      * @param path  to store {@code .class} files
      * @throws ImplerException if an error occurs
      */
-    private void compileClass(Class<?> token, Path path) throws ImplerException {
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+    private void compileClass(final Class<?> token, final Path path) throws ImplerException {
+        final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
             throw new ImplerException("Failed to get the system compiler");
         }
-        String extendPath;
+        final String extendPath;
         try {
             extendPath = Path.of(token.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new ImplerException("Could not convert URL to URI", e);
         }
-        int exitCode = compiler.run(null, null, null, "-cp", extendPath,
+        final int exitCode = compiler.run(null, null, null, "-cp", extendPath,
                 ImplementorDirectoryManager.getFilePath(token, path, ".java").toString());
         if (exitCode != 0) {
             throw new ImplerException("Failed to compile code: compiler exit code is " + exitCode);
@@ -108,7 +108,7 @@ public class JarImplementor extends Implementor implements JarImpler {
      * @param token         type token that needs to be implemented
      * @throws ImplerException if {@link JarOutputStream} processing throws an {@link IOException}
      */
-    private void makeJar(Path jarFile, Path tempDirectory, Class<?> token) throws ImplerException {
+    private void makeJar(final Path jarFile, final Path tempDirectory, final Class<?> token) throws ImplerException {
         final Manifest manifest = new Manifest();
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 
@@ -132,12 +132,12 @@ public class JarImplementor extends Implementor implements JarImpler {
      * @throws ImplerException if any error occurs during the implementation
      */
     @Override
-    public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
+    public void implementJar(final Class<?> token, final Path jarFile) throws ImplerException {
         if (token == null || jarFile == null) {
             throw new ImplerException("Not null arguments expected");
         }
         ImplementorDirectoryManager.createDirectoriesOnPath(jarFile.normalize());
-        ImplementorDirectoryManager directoryManager = new ImplementorDirectoryManager(jarFile.toAbsolutePath().getParent());
+        final ImplementorDirectoryManager directoryManager = new ImplementorDirectoryManager(jarFile.toAbsolutePath().getParent());
         try {
             implement(token, directoryManager.getDirectory());
             compileClass(token, directoryManager.getDirectory());
