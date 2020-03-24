@@ -15,13 +15,10 @@ public class ThreadJoiner {
             try {
                 workers.get(i).join();
             } catch (final InterruptedException e) {
-                InterruptedException exception = null;
-                if (!nothrow) {
-                    exception = new InterruptedException("Some threads were interrupted");
-                    exception.addSuppressed(e);
-                    for (int j = i; j < workers.size(); j++) {
-                        workers.get(j).interrupt();
-                    }
+                InterruptedException   exception = new InterruptedException("Some threads were interrupted");
+                exception.addSuppressed(e);
+                for (int j = i; j < workers.size(); j++) {
+                    workers.get(j).interrupt();
                 }
                 for (int j = i; j < workers.size(); j++) {
                     try {
