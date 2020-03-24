@@ -35,6 +35,7 @@ public class IterativeParallelism implements AdvancedIP {
      * @param map {@link ParallelMapper} instance
      */
     public IterativeParallelism(ParallelMapper map) {
+        Objects.requireNonNull(map);
         mapper = map;
     }
 
