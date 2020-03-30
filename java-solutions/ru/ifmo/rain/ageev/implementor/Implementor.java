@@ -119,8 +119,7 @@ public class Implementor implements Impler {
         }
         final Path toGo;
         try {
-            // :NOTE: resolve
-            toGo = Path.of(root.toString(), getPath(token), makeName(token) + ".java");
+            toGo = Path.of(root.normalize().toString(), getPath(token), makeName(token) + ".java");
         } catch (final InvalidPathException e) {
             throw new ImplerException("Invalid path", e);
         }
@@ -448,7 +447,6 @@ public class Implementor implements Impler {
      * @return a {@link String} code of all superclasses' abstract methods separated by {@link #LINE_SEPARATOR}
      */
     private String makeAbstractMethods(Class<?> token) {
-        // :NOTE: HashSet
         final Set<MethodHasher> methods = new HashSet<>();
         makeAbstractMethodsOneClass(token.getMethods(), methods);
         for (; token != null; token = token.getSuperclass()) {

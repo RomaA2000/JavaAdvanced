@@ -112,10 +112,10 @@ public class JarImplementor extends Implementor implements JarImpler {
         final Manifest manifest = new Manifest();
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 
-        try (final JarOutputStream jos = new JarOutputStream(Files.newOutputStream(jarFile), manifest)) {
+        try (final JarOutputStream jar = new JarOutputStream(Files.newOutputStream(jarFile), manifest)) {
             final String name = token.getPackageName().replace('.', '/') + "/" + makeName(token) + ".class";
-            jos.putNextEntry(new ZipEntry(name));
-            Files.copy(Paths.get(tempDirectory.toString(), name), jos);
+            jar.putNextEntry(new ZipEntry(name));
+            Files.copy(Paths.get(tempDirectory.toString(), name), jar);
         } catch (final IOException e) {
             throw new ImplerException(e.getMessage());
         }

@@ -12,7 +12,7 @@ import static java.util.stream.IntStream.range;
  * @version 1.0.1
  */
 public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
-    private final Queue<Runnable> tasksQueue;
+    private final SynchronizedQueue tasksQueue;
     private final List<Thread> workersList;
 
     /**
@@ -26,36 +26,18 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
         if (number <= 0) {
             throw new IllegalArgumentException("threads count must be greater than 0");
         }
-        tasksQueue = new ArrayDeque<>();
+        tasksQueue = new SynchronizedQueue();
         workersList = new ArrayList<>();
         Runnable SIMPLE_TASK = () -> {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
-                    runTaskSynchronised();
+                    tasksQueue.runTask();
                 }
             } catch (InterruptedException ignored) {
             }
         };
         range(0, number).forEach(i -> workersList.add(new Thread(SIMPLE_TASK)));
         workersList.forEach(Thread::start);
-    }
-
-    private void runTaskSynchronised() throws InterruptedException {
-        Runnable task;
-        synchronized (tasksQueue) {
-            while (tasksQueue.isEmpty()) {
-                tasksQueue.wait();
-            }
-            task = tasksQueue.poll();
-        }
-        task.run();
-    }
-
-    private void addTaskSynchronised(final Runnable task) {
-        synchronized (tasksQueue) {
-            tasksQueue.add(task);
-            tasksQueue.notify();
-        }
     }
 
     /**
@@ -71,30 +53,27 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
      */
     @Override
     public <T, R> List<R> map(Function<? super T, ? extends R> function, List<? extends T> list) throws InterruptedException {
-        Collector<R> collector = new Collector<>(list.size());
-        List<RuntimeException> exceptions = new ArrayList<>();
+        Collector<R, RuntimeException> collector = new Collector<>(list.size());
         int idx = 0;
         for (final T value : list) {
             final int index = idx;
-            addTaskSynchronised(() -> {
+            tasksQueue.addTask(() -> {
                 R ans = null;
                 try {
                     ans = function.apply(value);
                 } catch (RuntimeException e) {
-                    synchronized (exceptions) {
-                        exceptions.add(e);
-                    }
+                    collector.setException(e);
                 }
-                collector.setSynchronized(index, ans);
+                collector.setResult(index, ans);
             });
             idx++;
         }
-        if (!exceptions.isEmpty()) {
+        if (collector.hasExceptions()) {
             RuntimeException e = new RuntimeException("Runtime Exceptions occurred while mapping");
-            exceptions.forEach(e::addSuppressed);
+            collector.getExceptions().forEach(e::addSuppressed);
             throw e;
         }
-        return collector.getResultSynchronized();
+        return collector.getResult();
     }
 
     /**
