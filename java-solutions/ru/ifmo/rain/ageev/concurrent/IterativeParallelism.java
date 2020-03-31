@@ -67,19 +67,24 @@ public class IterativeParallelism implements AdvancedIP {
         final List<Stream<I>> blocks = makeBlocks(threads, values);
         final List<M> workersResults;
         if (mapper == null) {
-            workersResults = new ArrayList<>(Collections.nCopies(blocks.size(), null));
-            final List<Thread> workers = new ArrayList<>();
-            for (int i = 0; i < blocks.size(); i++) {
-                final int idx = i;
-                Thread thread = new Thread(() -> workersResults.set(idx, work.apply(blocks.get(idx))));
-                thread.start();
-                workers.add(thread);
-            }
-            joinAll(workers);
+            workersResults = noMapper(work, blocks);
         } else {
             workersResults = mapper.map(work, blocks);
         }
         return merger.apply(workersResults.stream());
+    }
+
+    private <I, M> List<M> noMapper(final Function<Stream<I>, M> work, final List<Stream<I>> blocks) throws InterruptedException {
+        List<M> workersResults = new ArrayList<>(Collections.nCopies(blocks.size(), null));
+        final List<Thread> workers = new ArrayList<>();
+        for (int i = 0; i < blocks.size(); i++) {
+            final int idx = i;
+            Thread thread = new Thread(() -> workersResults.set(idx, work.apply(blocks.get(idx))));
+            thread.start();
+            workers.add(thread);
+        }
+        joinAll(workers);
+        return workersResults;
     }
 
     private <T> Function<Stream<T>, T> getReduce(final Monoid<T> monoid) {
