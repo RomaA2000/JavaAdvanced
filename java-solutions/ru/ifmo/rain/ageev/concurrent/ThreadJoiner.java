@@ -10,12 +10,12 @@ import java.util.List;
  * @version 1.0
  */
 public class ThreadJoiner {
-    private static void joinAllFlag(final List<Thread> workers, boolean nothrow) throws InterruptedException {
+    private static void joinAllFlag(final List<Thread> workers, final boolean nothrow) throws InterruptedException {
         for (int i = 0; i < workers.size(); i++) {
             try {
                 workers.get(i).join();
             } catch (final InterruptedException e) {
-                InterruptedException exception = new InterruptedException("Some threads were interrupted");
+                final InterruptedException exception = new InterruptedException("Some threads were interrupted");
                 exception.addSuppressed(e);
                 for (int j = i; j < workers.size(); j++) {
                     workers.get(j).interrupt();
@@ -23,10 +23,8 @@ public class ThreadJoiner {
                 for (int j = i; j < workers.size(); j++) {
                     try {
                         workers.get(j).join();
-                    } catch (InterruptedException er) {
-                        if (!nothrow) {
-                            exception.addSuppressed(er);
-                        }
+                    } catch (final InterruptedException er) {
+                        exception.addSuppressed(er);
                         j--;
                     }
                 }
@@ -56,7 +54,7 @@ public class ThreadJoiner {
     public static void joinAllNothrow(final List<Thread> workers) {
         try {
             joinAllFlag(workers, true);
-        } catch (InterruptedException ignored) {
+        } catch (final InterruptedException ignored) {
         }
     }
 }

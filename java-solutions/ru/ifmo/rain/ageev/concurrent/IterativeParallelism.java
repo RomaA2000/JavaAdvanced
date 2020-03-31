@@ -34,7 +34,7 @@ public class IterativeParallelism implements AdvancedIP {
      *
      * @param map {@link ParallelMapper} instance
      */
-    public IterativeParallelism(ParallelMapper map) {
+    public IterativeParallelism(final ParallelMapper map) {
         Objects.requireNonNull(map);
         mapper = map;
     }
@@ -75,11 +75,11 @@ public class IterativeParallelism implements AdvancedIP {
     }
 
     private <I, M> List<M> noMapper(final Function<Stream<I>, M> work, final List<Stream<I>> blocks) throws InterruptedException {
-        List<M> workersResults = new ArrayList<>(Collections.nCopies(blocks.size(), null));
+        final List<M> workersResults = new ArrayList<>(Collections.nCopies(blocks.size(), null));
         final List<Thread> workers = new ArrayList<>();
         for (int i = 0; i < blocks.size(); i++) {
             final int idx = i;
-            Thread thread = new Thread(() -> workersResults.set(idx, work.apply(blocks.get(idx))));
+            final Thread thread = new Thread(() -> workersResults.set(idx, work.apply(blocks.get(idx))));
             thread.start();
             workers.add(thread);
         }
@@ -123,7 +123,7 @@ public class IterativeParallelism implements AdvancedIP {
 
     @Override
     public <T> T minimum(final int threads, final List<? extends T> values, final Comparator<? super T> comparator) throws InterruptedException {
-        return minMaxSameReducePart(threads, values, s -> s.min(comparator).orElse(null));
+        return minMaxSameReducePart(threads, values, s -> s.min(comparator).get());
     }
 
     @Override
