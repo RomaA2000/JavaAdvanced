@@ -53,25 +53,18 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
      */
     @Override
     public <T, R> List<R> map(Function<? super T, ? extends R> function, List<? extends T> list) throws InterruptedException {
-        Collector<R, RuntimeException> collector = new Collector<>(list.size());
+        Collector<R> collector = new Collector<>(list.size());
         int idx = 0;
         for (final T value : list) {
             final int index = idx;
             tasksQueue.addTask(() -> {
-                R ans = null;
                 try {
-                    ans = function.apply(value);
+                    collector.setResult(index, function.apply(value));
                 } catch (RuntimeException e) {
                     collector.setException(e);
                 }
-                collector.setResult(index, ans);
             });
             idx++;
-        }
-        if (collector.hasExceptions()) {
-            RuntimeException e = new RuntimeException("Runtime Exceptions occurred while mapping");
-            collector.getExceptions().forEach(e::addSuppressed);
-            throw e;
         }
         return collector.getResult();
     }
