@@ -10,32 +10,22 @@ import java.util.Queue;
  * @version 1.0
  */
 public class SynchronizedQueue {
-    private Queue<Runnable> tasksQueue;
-
-    /**
-     * Constructor from {@link Queue}.
-     * Creates an instance of this class.
-     *
-     * @param queue another {@link Queue}.
-     */
-    public SynchronizedQueue(Queue<Runnable> queue) {
-        tasksQueue = queue;
-    }
+    private final Queue<Runnable> tasksQueue;
 
     /**
      * Default constructor from {@link Queue}.
      * Creates an instance of this class.
      */
     public SynchronizedQueue() {
-        this(new ArrayDeque<>());
+        tasksQueue = new ArrayDeque<>();
     }
 
     /**
      * Runs task from {@link Queue}.
      */
-    public synchronized void runTask() throws InterruptedException {
+    public void runTask() throws InterruptedException {
         Runnable task;
-        {
+        synchronized (this) {
             while (tasksQueue.isEmpty()) {
                 wait();
             }

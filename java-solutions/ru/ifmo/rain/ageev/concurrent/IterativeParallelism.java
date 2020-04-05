@@ -138,8 +138,8 @@ public class IterativeParallelism implements AdvancedIP {
         return !all(threads, values, predicate.negate());
     }
 
-    private <I> I minMaxSameReducePart(final int threads, final List<I> values, final Function<Stream<I>, I> comparator) throws InterruptedException {
-        return parallelWork(threads, values, comparator, comparator);
+    private <I> I minMaxSameReducePart(final int threads, final List<I> values, final Function<Stream<I>, I> reducer) throws InterruptedException {
+        return parallelWork(threads, values, reducer, reducer);
     }
 
     @Override

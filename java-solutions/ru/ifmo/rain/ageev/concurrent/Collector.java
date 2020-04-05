@@ -11,9 +11,9 @@ import java.util.List;
  * @author ageev
  * @version 1.0
  */
-public class Collector<Return, Exceptions> {
+public class Collector<Return> {
     private final List<Return> results;
-    private final List<Exceptions> exceptions;
+    private final List<RuntimeException> exceptions;
     private int readyThreads;
 
     /**
@@ -35,10 +35,8 @@ public class Collector<Return, Exceptions> {
      * @param position index for result
      * @param element  result
      */
-    public void setResult(final int position, Return element) {
-        synchronized (results) {
-            results.set(position, element);
-        }
+    public synchronized void setResult(final int position, Return element) {
+        results.set(position, element);
         modified();
     }
 
@@ -48,10 +46,8 @@ public class Collector<Return, Exceptions> {
      *
      * @param error error
      */
-    public void setException(Exceptions error) {
-        synchronized (exceptions) {
-            exceptions.add(error);
-        }
+    public synchronized void setException(RuntimeException error) {
+        exceptions.add(error);
         modified();
     }
 
@@ -77,6 +73,11 @@ public class Collector<Return, Exceptions> {
      */
     public synchronized List<Return> getResult() throws InterruptedException {
         waitForFinish();
+        if (hasExceptions()) {
+            RuntimeException e = exceptions.get(0);
+            exceptions.subList(1, exceptions.size()).forEach(e::addSuppressed);
+            throw e;
+        }
         return results;
     }
 
@@ -87,20 +88,7 @@ public class Collector<Return, Exceptions> {
      * @return {@link List} of exceptions
      * @throws InterruptedException if executing thread was interrupted.
      */
-    public synchronized boolean hasExceptions() throws InterruptedException {
-        waitForFinish();
+    private synchronized boolean hasExceptions() throws InterruptedException {
         return !exceptions.isEmpty();
-    }
-
-    /**
-     * Synchronized exceptions getter.
-     * Gets exceptions when is's ready.
-     *
-     * @return {@link List} of exceptions
-     * @throws InterruptedException if executing thread was interrupted.
-     */
-    public synchronized List<Exceptions> getExceptions() throws InterruptedException {
-        waitForFinish();
-        return exceptions;
     }
 }
