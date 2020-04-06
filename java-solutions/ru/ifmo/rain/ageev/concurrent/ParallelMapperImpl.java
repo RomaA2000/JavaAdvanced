@@ -30,10 +30,12 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
         workersList = new ArrayList<>();
         Runnable SIMPLE_TASK = () -> {
             try {
-                while (!Thread.currentThread().isInterrupted()) {
-                    tasksQueue.runTask();
+                while (!Thread.interrupted()) {
+                    tasksQueue.getNext().run();
                 }
             } catch (InterruptedException ignored) {
+            } finally {
+            Thread.currentThread().interrupt();
             }
         };
         range(0, number).forEach(i -> workersList.add(new Thread(SIMPLE_TASK)));
@@ -53,20 +55,12 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
      */
     @Override
     public <T, R> List<R> map(Function<? super T, ? extends R> function, List<? extends T> list) throws InterruptedException {
-        Collector<R> collector = new Collector<>(list.size());
-        int idx = 0;
-        for (final T value : list) {
-            final int index = idx;
-            tasksQueue.addTask(() -> {
-                try {
-                    collector.setResult(index, function.apply(value));
-                } catch (RuntimeException e) {
-                    collector.setException(e);
-                }
-            });
-            idx++;
+        Collector<T, R> coll;
+        synchronized (this) {
+            coll = new Collector<>(function, list);
+            tasksQueue.addTask(coll);
         }
-        return collector.getResult();
+        return coll.getResult();
     }
 
     /**
@@ -75,6 +69,9 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
     @Override
     public void close() {
         workersList.forEach(Thread::interrupt);
+        synchronized (this) {
+            tasksQueue.get(Collector::finish);
+        }
         ThreadJoiner.joinAllNothrow(workersList);
     }
 }

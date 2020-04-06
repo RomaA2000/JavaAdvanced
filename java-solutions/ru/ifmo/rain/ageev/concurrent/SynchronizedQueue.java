@@ -2,6 +2,7 @@ package ru.ifmo.rain.ageev.concurrent;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
+import java.util.function.Consumer;
 
 /**
  * Class for storing tasks {@link Runnable}.
@@ -9,8 +10,8 @@ import java.util.Queue;
  * @author ageev
  * @version 1.0
  */
-public class SynchronizedQueue {
-    private final Queue<Runnable> tasksQueue;
+class SynchronizedQueue {
+    private final Queue<Collector<?, ?>> tasksQueue;
 
     /**
      * Default constructor from {@link Queue}.
@@ -23,22 +24,33 @@ public class SynchronizedQueue {
     /**
      * Runs task from {@link Queue}.
      */
-    public void runTask() throws InterruptedException {
-        Runnable task;
-        synchronized (this) {
-            while (tasksQueue.isEmpty()) {
-                wait();
-            }
-            task = tasksQueue.poll();
+    public synchronized Runnable getNext() throws InterruptedException {
+        while (tasksQueue.isEmpty()) {
+            wait();
         }
-        task.run();
+        var task = tasksQueue.element().getNext();
+        if (tasksQueue.element().wasLast()) {
+            remove();
+        }
+        return task;
+    }
+
+    public synchronized void remove() throws InterruptedException {
+        while (tasksQueue.isEmpty()) {
+            wait();
+        }
+        tasksQueue.remove();
+    }
+
+    public synchronized void get(Consumer<Collector<?, ?>> consumer) {
+        tasksQueue.forEach(consumer);
     }
 
     /**
-     * Adds task {@link Runnable} to {@link Queue}.
+     * Adds task {@link Collector} to {@link Queue}.
      */
-    public synchronized void addTask(final Runnable task) {
+    public synchronized void addTask(final Collector<?, ?> task) {
         tasksQueue.add(task);
-        notify();
+        notifyAll();
     }
 }

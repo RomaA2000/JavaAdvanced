@@ -1,8 +1,9 @@
 package ru.ifmo.rain.ageev.concurrent;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+
+import static java.util.stream.IntStream.range;
 
 
 /**
@@ -11,22 +12,27 @@ import java.util.List;
  * @author ageev
  * @version 1.0
  */
-public class Collector<Return> {
-    private final List<Return> results;
-    private final List<RuntimeException> exceptions;
-    private int readyThreads;
+class Collector<T, R> {
+    private final List<R> results;
+    private final List<RuntimeException> exceptions = new ArrayList<>();
+    ;
+    private final Queue<Runnable> subCollectors = new ArrayDeque<>();
+    ;
+    private int started = 0;
+    private int finished = 0;
+    private boolean finish;
 
-    /**
-     * Default constructor.
-     * Creates an Collector instance.
-     *
-     * @param size size of created collector
-     */
-    Collector(int size) {
-        readyThreads = 0;
-        results = new ArrayList<>(Collections.nCopies(size, null));
-        exceptions = new ArrayList<>();
+    Collector(final Function<? super T, ? extends R> func, final List<? extends T> args) {
+        results = new ArrayList<>(Collections.nCopies(args.size(), null));
+        range(0, args.size()).forEach(i -> subCollectors.add(() -> {
+            try {
+                setResult(i, func.apply(args.get(i)));
+            } catch (RuntimeException e) {
+                setException(e);
+            }
+        }));
     }
+
 
     /**
      * Synchronized result setter.
@@ -35,7 +41,7 @@ public class Collector<Return> {
      * @param position index for result
      * @param element  result
      */
-    public synchronized void setResult(final int position, Return element) {
+    public synchronized void setResult(final int position, R element) {
         results.set(position, element);
         modified();
     }
@@ -52,16 +58,15 @@ public class Collector<Return> {
     }
 
     private synchronized void modified() {
-        readyThreads++;
-        if (results.size() == readyThreads) {
-            notify();
+        finished++;
+        if (results.size() == finished) {
+            finish();
         }
     }
 
-    private synchronized void waitForFinish() throws InterruptedException {
-        while (results.size() > readyThreads) {
-            wait();
-        }
+    public synchronized void finish() {
+        finish = true;
+        notify();
     }
 
     /**
@@ -71,14 +76,26 @@ public class Collector<Return> {
      * @return {@link List} of results
      * @throws InterruptedException if executing thread was interrupted.
      */
-    public synchronized List<Return> getResult() throws InterruptedException {
-        waitForFinish();
+    public synchronized List<R> getResult() throws InterruptedException {
+        while (!finish) {
+            wait();
+        }
         if (hasExceptions()) {
             RuntimeException e = exceptions.get(0);
             exceptions.subList(1, exceptions.size()).forEach(e::addSuppressed);
             throw e;
         }
         return results;
+    }
+
+    public synchronized boolean wasLast() {
+        return results.size() == started;
+    }
+
+    public synchronized Runnable getNext() {
+        var subCollector = subCollectors.poll();
+        started++;
+        return subCollector;
     }
 
     /**
@@ -88,7 +105,7 @@ public class Collector<Return> {
      * @return {@link List} of exceptions
      * @throws InterruptedException if executing thread was interrupted.
      */
-    private synchronized boolean hasExceptions() throws InterruptedException {
+    private synchronized boolean hasExceptions() {
         return !exceptions.isEmpty();
     }
 }
