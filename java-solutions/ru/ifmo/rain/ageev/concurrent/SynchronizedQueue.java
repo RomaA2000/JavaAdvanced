@@ -42,8 +42,8 @@ class SynchronizedQueue {
         tasksQueue.remove();
     }
 
-    public synchronized void get(Consumer<Collector<?, ?>> consumer) {
-        tasksQueue.forEach(consumer);
+    public synchronized void shutdown() {
+        tasksQueue.forEach(Collector::finish);
     }
 
     /**

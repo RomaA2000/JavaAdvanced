@@ -70,7 +70,7 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
     public void close() {
         workersList.forEach(Thread::interrupt);
         synchronized (this) {
-            tasksQueue.get(Collector::finish);
+            tasksQueue.shutdown();
         }
         ThreadJoiner.joinAllNothrow(workersList);
     }
