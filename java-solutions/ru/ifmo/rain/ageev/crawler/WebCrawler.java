@@ -85,7 +85,7 @@ public class WebCrawler implements Crawler {
             }
         }
 
-        private void queueExtraction(Document page, Phaser levelPhaser) {
+        private void queueExtraction(final Document page, final Phaser levelPhaser) {
             levelPhaser.register();
             extractorPool.submit(() -> {
                 try {
@@ -98,7 +98,7 @@ public class WebCrawler implements Crawler {
             });
         }
 
-        private void queueDownload(String link, int nowDepth, Phaser levelPhaser) {
+        private void queueDownload(final String link, int nowDepth, final Phaser levelPhaser) {
             final String newHost;
             try {
                 newHost = URLUtils.getHost(link);
@@ -144,9 +144,8 @@ public class WebCrawler implements Crawler {
             return;
         }
         try {
-            int depth = checkedGet(args, 1);
-            try (Crawler crawler = new WebCrawler(new CachingDownloader(), depth, checkedGet(args, 2), checkedGet(args, 3))) {
-                crawler.download(args[0], depth);
+            try (Crawler crawler = new WebCrawler(new CachingDownloader(), checkedGet(args, 2), checkedGet(args, 3), checkedGet(args, 4))) {
+                crawler.download(args[0], checkedGet(args, 1));
             }
         } catch (NumberFormatException e) {
             System.err.println("Arguments after first must be numbers: " + e.getMessage());
