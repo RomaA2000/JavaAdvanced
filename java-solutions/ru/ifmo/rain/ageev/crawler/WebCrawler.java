@@ -74,14 +74,14 @@ public class WebCrawler implements Crawler {
 
         private void run(int depth) {
             while (depth-- > 0) {
-                final var levelPhaser = new Phaser(1);
+                final var levelPhaser = new Phaser(0);
                 var processing = new ArrayList<>(level);
                 level.clear();
                 final int nowDepth = depth;
                 processing.stream()
                         .filter(usedUrls::add)
                         .forEach(link -> queueDownload(link, nowDepth, levelPhaser));
-                levelPhaser.arriveAndAwaitAdvance();
+                levelPhaser.awaitAdvance(0);
             }
         }
 

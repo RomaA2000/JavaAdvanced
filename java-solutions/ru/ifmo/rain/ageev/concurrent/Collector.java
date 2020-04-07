@@ -15,9 +15,7 @@ import static java.util.stream.IntStream.range;
 class Collector<T, R> {
     private final List<R> results;
     private final List<RuntimeException> exceptions = new ArrayList<>();
-    ;
     private final Queue<Runnable> subCollectors = new ArrayDeque<>();
-    ;
     private int started = 0;
     private int finished = 0;
     private boolean finish;
