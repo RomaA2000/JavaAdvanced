@@ -23,18 +23,18 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
      *
      * @param number number of operable threads
      */
-    public ParallelMapperImpl(int number) {
+    public ParallelMapperImpl(final int number) {
         if (number <= 0) {
             throw new IllegalArgumentException("threads count must be greater than 0");
         }
         tasksQueue = new SynchronizedQueue();
         workersList = new ArrayList<>();
-        Runnable SIMPLE_TASK = () -> {
+        final Runnable SIMPLE_TASK = () -> {
             try {
                 while (!Thread.interrupted()) {
                     tasksQueue.getNext().run();
                 }
-            } catch (InterruptedException ignored) {
+            } catch (final InterruptedException ignored) {
             } finally {
                 Thread.currentThread().interrupt();
             }
@@ -55,8 +55,8 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
      * @throws InterruptedException if executing thread was interrupted.
      */
     @Override
-    public <T, R> List<R> map(Function<? super T, ? extends R> function, List<? extends T> list) throws InterruptedException {
-        Collector<T, R> coll;
+    public <T, R> List<R> map(final Function<? super T, ? extends R> function, final List<? extends T> list) throws InterruptedException {
+        final Collector<T, R> coll;
         synchronized (this) {
             if (closed) {
                 return null;

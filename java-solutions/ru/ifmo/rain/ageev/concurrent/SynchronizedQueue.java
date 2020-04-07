@@ -20,11 +20,12 @@ class SynchronizedQueue {
         while (tasksQueue.isEmpty()) {
             wait();
         }
-        var task = tasksQueue.element().getNext();
-        if (tasksQueue.element().wasLast()) {
+        final Collector<?, ?> task = tasksQueue.element();
+        final var subTask = task.getNext();
+        if (task.wasLast()) {
             tasksQueue.remove();
         }
-        return task;
+        return subTask;
     }
 
     public synchronized void shutdown() {

@@ -65,12 +65,7 @@ public class IterativeParallelism implements AdvancedIP {
             throw new IllegalArgumentException("threads count must be greater than 0");
         }
         final List<Stream<I>> blocks = makeBlocks(threads, values);
-        final List<M> workersResults;
-        if (mapper == null) {
-            workersResults = noMapper(work, blocks);
-        } else {
-            workersResults = mapper.map(work, blocks);
-        }
+        final List<M> workersResults = mapper == null ? noMapper(work, blocks) : mapper.map(work, blocks);
         return merger.apply(workersResults.stream());
     }
 

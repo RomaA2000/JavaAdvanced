@@ -25,7 +25,7 @@ class Collector<T, R> {
         range(0, args.size()).forEach(i -> subCollectors.add(() -> {
             try {
                 setResult(i, func.apply(args.get(i)));
-            } catch (RuntimeException e) {
+            } catch (final RuntimeException e) {
                 setException(e);
             }
         }));
@@ -39,7 +39,7 @@ class Collector<T, R> {
      * @param position index for result
      * @param element  result
      */
-    public synchronized void setResult(final int position, R element) {
+    public synchronized void setResult(final int position, final R element) {
         results.set(position, element);
         modified();
     }
@@ -50,20 +50,19 @@ class Collector<T, R> {
      *
      * @param error error
      */
-    public synchronized void setException(RuntimeException error) {
+    public synchronized void setException(final RuntimeException error) {
         exceptions.add(error);
         modified();
     }
 
     private synchronized void modified() {
-        finished++;
-        if (results.size() == finished) {
-            finish();
+        if (results.size() == ++finished) {
+            notify();
         }
     }
 
     public synchronized void finish() {
-        finish = true;
+        finished = results.size();
         notify();
     }
 
@@ -75,11 +74,11 @@ class Collector<T, R> {
      * @throws InterruptedException if executing thread was interrupted.
      */
     public synchronized List<R> getResult() throws InterruptedException {
-        while (!finish) {
+        while (finished != results.size()) {
             wait();
         }
-        if (hasExceptions()) {
-            RuntimeException e = exceptions.get(0);
+        if (!exceptions.isEmpty()) {
+            final RuntimeException e = exceptions.get(0);
             exceptions.subList(1, exceptions.size()).forEach(e::addSuppressed);
             throw e;
         }
@@ -91,19 +90,7 @@ class Collector<T, R> {
     }
 
     public synchronized Runnable getNext() {
-        var subCollector = subCollectors.poll();
         started++;
-        return subCollector;
-    }
-
-    /**
-     * Synchronized exceptions checker.
-     * Checks are there any exceptions.
-     *
-     * @return {@link List} of exceptions
-     * @throws InterruptedException if executing thread was interrupted.
-     */
-    private synchronized boolean hasExceptions() {
-        return !exceptions.isEmpty();
+        return subCollectors.poll();
     }
 }
