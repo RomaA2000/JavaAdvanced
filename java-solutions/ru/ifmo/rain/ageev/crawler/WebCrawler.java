@@ -8,7 +8,6 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class WebCrawler implements Crawler {
-
     private final Downloader downloader;
     private final int perHost;
     private final ExecutorService extractorPool;
@@ -85,7 +84,10 @@ public class WebCrawler implements Crawler {
             }
         }
 
-        private void queueExtraction(final Document page, final Phaser levelPhaser) {
+        private void queueExtraction(final Document page, int nowDepth, final Phaser levelPhaser) {
+            if (nowDepth == 0) {
+                return;
+            }
             levelPhaser.register();
             extractorPool.submit(() -> {
                 try {
@@ -113,9 +115,7 @@ public class WebCrawler implements Crawler {
                 try {
                     var page = downloader.download(link);
                     results.add(link);
-                    if (nowDepth > 0) {
-                        queueExtraction(page, levelPhaser);
-                    }
+                    queueExtraction(page, nowDepth, levelPhaser);
                 } catch (IOException e) {
                     errors.put(link, e);
                 } finally {
@@ -144,7 +144,7 @@ public class WebCrawler implements Crawler {
             return;
         }
         try {
-            try (Crawler crawler = new WebCrawler(new CachingDownloader(), checkedGet(args, 2), checkedGet(args, 3), checkedGet(args, 4))) {
+            try (WebCrawler crawler = new WebCrawler(new CachingDownloader(), checkedGet(args, 2), checkedGet(args, 3), checkedGet(args, 4))) {
                 crawler.download(args[0], checkedGet(args, 1));
             }
         } catch (NumberFormatException e) {

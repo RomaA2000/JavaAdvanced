@@ -18,7 +18,6 @@ class Collector<T, R> {
     private final Queue<Runnable> subCollectors = new ArrayDeque<>();
     private int started = 0;
     private int finished = 0;
-    private boolean finish;
 
     Collector(final Function<? super T, ? extends R> func, final List<? extends T> args) {
         results = new ArrayList<>(Collections.nCopies(args.size(), null));
