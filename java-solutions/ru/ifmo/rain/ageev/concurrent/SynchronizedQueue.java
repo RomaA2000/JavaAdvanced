@@ -22,16 +22,12 @@ class SynchronizedQueue {
         }
         var task = tasksQueue.element().getNext();
         if (tasksQueue.element().wasLast()) {
-            remove();
+            while (tasksQueue.isEmpty()) {
+                wait();
+            }
+            tasksQueue.remove();
         }
         return task;
-    }
-
-    public synchronized void remove() throws InterruptedException {
-        while (tasksQueue.isEmpty()) {
-            wait();
-        }
-        tasksQueue.remove();
     }
 
     public synchronized void shutdown() {
