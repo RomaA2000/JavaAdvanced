@@ -40,8 +40,10 @@ class Collector<T, R> {
      * @param element  result
      */
     public synchronized void setResult(final int position, final R element) {
-        results.set(position, element);
-        modified();
+        if (results.size() != finished) {
+            results.set(position, element);
+            modified();
+        }
     }
 
     /**
@@ -51,8 +53,10 @@ class Collector<T, R> {
      * @param error error
      */
     public synchronized void setException(final RuntimeException error) {
-        exceptions.add(error);
-        modified();
+        if (results.size() != finished) {
+            exceptions.add(error);
+            modified();
+        }
     }
 
     private synchronized void modified() {
