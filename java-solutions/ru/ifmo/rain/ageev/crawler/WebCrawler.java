@@ -85,21 +85,21 @@ public class WebCrawler implements Crawler {
             }
         }
 
-        private void queueExtraction(Document page, Phaser completionPhaser) {
-            completionPhaser.register();
+        private void queueExtraction(Document page, Phaser levelPhaser) {
+            levelPhaser.register();
             extractorPool.submit(() -> {
                 try {
                     var urls = page.extractLinks();
                     level.addAll(urls);
                 } catch (IOException ignored) {
                 } finally {
-                    completionPhaser.arrive();
+                    levelPhaser.arrive();
                 }
             });
         }
 
         private void queueDownload(String link, int nowDepth, Phaser levelPhaser) {
-            String newHost;
+            final String newHost;
             try {
                 newHost = URLUtils.getHost(link);
             } catch (MalformedURLException e) {
@@ -129,8 +129,8 @@ public class WebCrawler implements Crawler {
         }
     }
 
-    private static int checkedGet(String[] args, int index, int defaultValue) {
-        return index < args.length ? Integer.parseInt(args[index]) : defaultValue;
+    private static int checkedGet(String[] args, int index) {
+        return index > args.length ? 1 : Integer.parseInt(args[index]);
     }
 
     /**
@@ -144,12 +144,8 @@ public class WebCrawler implements Crawler {
             return;
         }
         try {
-            int defaultValue = 1;
-            int depth = checkedGet(args, 1, defaultValue);
-            int downloaders = checkedGet(args, 2, defaultValue);
-            int extractors = checkedGet(args, 3, defaultValue);
-            int perHost = checkedGet(args, 4, defaultValue);
-            try (Crawler crawler = new WebCrawler(new CachingDownloader(), downloaders, extractors, perHost)) {
+            int depth = checkedGet(args, 1);
+            try (Crawler crawler = new WebCrawler(new CachingDownloader(), depth, checkedGet(args, 2), checkedGet(args, 3))) {
                 crawler.download(args[0], depth);
             }
         } catch (NumberFormatException e) {
