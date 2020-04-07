@@ -36,7 +36,7 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
                 }
             } catch (InterruptedException ignored) {
             } finally {
-            Thread.currentThread().interrupt();
+                Thread.currentThread().interrupt();
             }
         };
         range(0, number).forEach(i -> workersList.add(new Thread(SIMPLE_TASK)));
