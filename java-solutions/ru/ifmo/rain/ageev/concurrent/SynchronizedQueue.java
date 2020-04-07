@@ -22,9 +22,6 @@ class SynchronizedQueue {
         }
         var task = tasksQueue.element().getNext();
         if (tasksQueue.element().wasLast()) {
-            while (tasksQueue.isEmpty()) {
-                wait();
-            }
             tasksQueue.remove();
         }
         return task;
