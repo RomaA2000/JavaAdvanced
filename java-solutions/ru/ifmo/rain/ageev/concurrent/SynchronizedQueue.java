@@ -11,15 +11,7 @@ import java.util.function.Consumer;
  * @version 1.0
  */
 class SynchronizedQueue {
-    private final Queue<Collector<?, ?>> tasksQueue;
-
-    /**
-     * Default constructor from {@link Queue}.
-     * Creates an instance of this class.
-     */
-    public SynchronizedQueue() {
-        tasksQueue = new ArrayDeque<>();
-    }
+    private final Queue<Collector<?, ?>> tasksQueue = new ArrayDeque<>();
 
     /**
      * Runs task from {@link Queue}.

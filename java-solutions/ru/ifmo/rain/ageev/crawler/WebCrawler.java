@@ -24,7 +24,9 @@ public class WebCrawler implements Crawler {
 
     @Override
     public Result download(String s, int i) {
-        return new Worker(s, i).result();
+        var worker = new Worker(s);
+        worker.run(i);
+        return worker.result();
     }
 
     @Override
@@ -34,13 +36,8 @@ public class WebCrawler implements Crawler {
     }
 
     private class HostDownloadersControl {
-        private final Queue<Runnable> tasksQueue;
-        private int nowRunning;
-
-        HostDownloadersControl() {
-            tasksQueue = new ArrayDeque<>();
-            nowRunning = 0;
-        }
+        private final Queue<Runnable> tasksQueue = new ArrayDeque<>();
+        private int nowRunning = 0;
 
         public synchronized void run(Runnable task) {
             tasksQueue.add(task);
@@ -71,12 +68,11 @@ public class WebCrawler implements Crawler {
         private final ConcurrentMap<String, IOException> errors = new ConcurrentHashMap<>();
         private final ConcurrentLinkedQueue<String> level = new ConcurrentLinkedQueue<>();
 
-        Worker(String url, int depth) {
+        Worker(String url) {
             level.add(url);
-            runProcess(depth);
         }
 
-        private void runProcess(int depth) {
+        private void run(int depth) {
             while (depth-- > 0) {
                 final var levelPhaser = new Phaser(1);
                 var processing = new ArrayList<>(level);
@@ -159,7 +155,7 @@ public class WebCrawler implements Crawler {
         } catch (NumberFormatException e) {
             System.err.println("Arguments after first must be numbers: " + e.getMessage());
         } catch (IOException e) {
-            System.err.println("Failed to initialize downloader: " + e.getMessage());
+            System.err.println("Failed to download: " + e.getMessage());
         }
     }
 }

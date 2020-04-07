@@ -14,6 +14,7 @@ import static java.util.stream.IntStream.range;
 public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
     private final SynchronizedQueue tasksQueue;
     private final List<Thread> workersList;
+    private boolean closed = false;
 
     /**
      * Constructor with specified threads number.
@@ -57,6 +58,9 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
     public <T, R> List<R> map(Function<? super T, ? extends R> function, List<? extends T> list) throws InterruptedException {
         Collector<T, R> coll;
         synchronized (this) {
+            if (closed) {
+                return null;
+            }
             coll = new Collector<>(function, list);
             tasksQueue.addTask(coll);
         }
@@ -68,8 +72,9 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
      */
     @Override
     public void close() {
-        workersList.forEach(Thread::interrupt);
         synchronized (this) {
+            closed = true;
+            workersList.forEach(Thread::interrupt);
             tasksQueue.shutdown();
         }
         ThreadJoiner.joinAllNothrow(workersList);
