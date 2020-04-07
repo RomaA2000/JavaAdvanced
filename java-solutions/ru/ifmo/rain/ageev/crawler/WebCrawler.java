@@ -129,8 +129,8 @@ public class WebCrawler implements Crawler {
         }
     }
 
-    private static int checkedGet(String[] args, int index) {
-        return index > args.length ? 1 : Integer.parseInt(args[index]);
+    private static int checkedGet(String[] args, int i) {
+        return i > args.length ? 1 : Integer.parseInt(args[i]);
     }
 
     /**
