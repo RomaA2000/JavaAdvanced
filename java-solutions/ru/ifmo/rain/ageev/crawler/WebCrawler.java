@@ -10,28 +10,24 @@ import java.util.concurrent.*;
 public class WebCrawler implements Crawler {
     private final Downloader downloader;
     private final int perHost;
-    private final ExecutorService extractorPool;
-    private final ExecutorService downloaderPool;
     private final ConcurrentHashMap<String, HostDownloadersControl> downloaderFromHost = new ConcurrentHashMap<>();
+    private final Pools pools;
 
     public WebCrawler(Downloader downloader, int downloaders, int extractors, int perHost) {
         this.downloader = downloader;
-        extractorPool = Executors.newFixedThreadPool(extractors);
-        downloaderPool = Executors.newFixedThreadPool(downloaders);
         this.perHost = perHost;
+        pools = new Pools(extractors, downloaders);
     }
 
     @Override
     public Result download(String s, int i) {
-        var worker = new Worker(s);
-        worker.run(i);
-        return worker.result();
+        final var worker = new Worker(s);
+        return worker.result(i);
     }
 
     @Override
     public void close() {
-        extractorPool.shutdown();
-        downloaderPool.shutdown();
+        pools.shutdown();
     }
 
     private class HostDownloadersControl {
@@ -45,10 +41,10 @@ public class WebCrawler implements Crawler {
 
         private synchronized void runNext() {
             if (perHost > nowRunning) {
-                var task = tasksQueue.poll();
-                if (task != null) {
+                if (!tasksQueue.isEmpty()) {
+                    final var task = tasksQueue.poll();
                     nowRunning++;
-                    downloaderPool.submit(() -> {
+                    pools.submitDownloader(() -> {
                         try {
                             task.run();
                         } finally {
@@ -65,33 +61,20 @@ public class WebCrawler implements Crawler {
         private final Set<String> results = ConcurrentHashMap.newKeySet();
         private final Set<String> usedUrls = ConcurrentHashMap.newKeySet();
         private final ConcurrentMap<String, IOException> errors = new ConcurrentHashMap<>();
-        private final ConcurrentLinkedQueue<String> level = new ConcurrentLinkedQueue<>();
+        private ConcurrentLinkedQueue<String> level = new ConcurrentLinkedQueue<>();
 
         Worker(String url) {
             level.add(url);
         }
 
-        private void run(int depth) {
-            while (depth-- > 0) {
-                final var levelPhaser = new Phaser(0);
-                var processing = new ArrayList<>(level);
-                level.clear();
-                final int nowDepth = depth;
-                processing.stream()
-                        .filter(usedUrls::add)
-                        .forEach(link -> queueDownload(link, nowDepth, levelPhaser));
-                levelPhaser.awaitAdvance(0);
-            }
-        }
-
-        private void queueExtraction(final Document page, int nowDepth, final Phaser levelPhaser) {
+        private void extract(final Document page, final int nowDepth, final Phaser levelPhaser) {
             if (nowDepth == 0) {
                 return;
             }
             levelPhaser.register();
-            extractorPool.submit(() -> {
+            pools.submitExtractor(() -> {
                 try {
-                    var urls = page.extractLinks();
+                    final var urls = page.extractLinks();
                     level.addAll(urls);
                 } catch (IOException ignored) {
                 } finally {
@@ -100,7 +83,7 @@ public class WebCrawler implements Crawler {
             });
         }
 
-        private void queueDownload(final String link, int nowDepth, final Phaser levelPhaser) {
+        private void download(final String link, final int nowDepth, final Phaser levelPhaser) {
             final String newHost;
             try {
                 newHost = URLUtils.getHost(link);
@@ -113,9 +96,9 @@ public class WebCrawler implements Crawler {
             levelPhaser.register();
             hostDownloader.run(() -> {
                 try {
-                    var page = downloader.download(link);
+                    final var page = downloader.download(link);
                     results.add(link);
-                    queueExtraction(page, nowDepth, levelPhaser);
+                    extract(page, nowDepth, levelPhaser);
                 } catch (IOException e) {
                     errors.put(link, e);
                 } finally {
@@ -124,12 +107,22 @@ public class WebCrawler implements Crawler {
             });
         }
 
-        public Result result() {
+        public Result result(int depth) {
+            while (depth-- > 0) {
+                final var levelPhaser = new Phaser(0);
+                final var newlevel = level;
+                level = new ConcurrentLinkedQueue<>();
+                final int nowDepth = depth;
+                newlevel.stream()
+                        .filter(usedUrls::add)
+                        .forEach(link -> download(link, nowDepth, levelPhaser));
+                levelPhaser.awaitAdvance(0);
+            }
             return new Result(new ArrayList<>(results), errors);
         }
     }
 
-    private static int checkedGet(String[] args, int i) {
+    private static int checkedGet(final String[] args, int i) {
         return i > args.length ? 1 : Integer.parseInt(args[i]);
     }
 
@@ -138,13 +131,14 @@ public class WebCrawler implements Crawler {
      *
      * @param args the arguments
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         if (args == null || args.length == 0 || Arrays.stream(args).anyMatch(Objects::isNull)) {
             System.err.println("Url [depth [downloads [extractors [perHost]]]]");
             return;
         }
         try {
-            try (WebCrawler crawler = new WebCrawler(new CachingDownloader(), checkedGet(args, 2), checkedGet(args, 3), checkedGet(args, 4))) {
+            try (final WebCrawler crawler = new WebCrawler(new CachingDownloader(), checkedGet(args, 2),
+                    checkedGet(args, 3), checkedGet(args, 4))) {
                 crawler.download(args[0], checkedGet(args, 1));
             }
         } catch (NumberFormatException e) {

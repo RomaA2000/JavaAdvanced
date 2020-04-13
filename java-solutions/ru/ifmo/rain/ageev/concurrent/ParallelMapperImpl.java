@@ -12,10 +12,19 @@ import static java.util.stream.IntStream.range;
  * @version 1.0.1
  */
 public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
-    private final SynchronizedQueue tasksQueue;
-    private final List<Thread> workersList;
+    private final SynchronizedQueue tasksQueue = new SynchronizedQueue();
+    private final List<Thread> workersList = new ArrayList<>();
     private boolean closed = false;
-
+    private final Runnable SIMPLE_TASK = () -> {
+        try {
+            while (!Thread.interrupted()) {
+                tasksQueue.getNext().run();
+            }
+        } catch (final InterruptedException ignored) {
+        } finally {
+            Thread.currentThread().interrupt();
+        }
+    };
     /**
      * Constructor with specified threads number.
      * Creates a ParallelMapperImpl instance operating with maximum of {@code threads}
@@ -27,18 +36,6 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
         if (number <= 0) {
             throw new IllegalArgumentException("threads count must be greater than 0");
         }
-        tasksQueue = new SynchronizedQueue();
-        workersList = new ArrayList<>();
-        final Runnable SIMPLE_TASK = () -> {
-            try {
-                while (!Thread.interrupted()) {
-                    tasksQueue.getNext().run();
-                }
-            } catch (final InterruptedException ignored) {
-            } finally {
-                Thread.currentThread().interrupt();
-            }
-        };
         range(0, number).forEach(i -> workersList.add(new Thread(SIMPLE_TASK)));
         workersList.forEach(Thread::start);
     }
