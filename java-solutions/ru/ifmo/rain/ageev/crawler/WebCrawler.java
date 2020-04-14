@@ -13,16 +13,15 @@ public class WebCrawler implements Crawler {
     private final ConcurrentHashMap<String, HostDownloadersControl> downloaderFromHost = new ConcurrentHashMap<>();
     private final Pools pools;
 
-    public WebCrawler(Downloader downloader, int downloaders, int extractors, int perHost) {
+    public WebCrawler(final Downloader downloader, final int downloaders, final int extractors, final int perHost) {
         this.downloader = downloader;
         this.perHost = perHost;
         pools = new Pools(extractors, downloaders);
     }
 
     @Override
-    public Result download(String s, int i) {
-        final var worker = new Worker(s);
-        return worker.result(i);
+    public Result download(final String url, final int depth) {
+        return new Worker(url).result(depth);
     }
 
     @Override
@@ -34,13 +33,13 @@ public class WebCrawler implements Crawler {
         private final Queue<Runnable> tasksQueue = new ArrayDeque<>();
         private int nowRunning = 0;
 
-        public synchronized void run(Runnable task) {
+        public synchronized void run(final Runnable task) {
             tasksQueue.add(task);
             runNext();
         }
 
         private synchronized void runNext() {
-            if (perHost > nowRunning) {
+            if (nowRunning < perHost) {
                 if (!tasksQueue.isEmpty()) {
                     final var task = tasksQueue.poll();
                     nowRunning++;
@@ -48,7 +47,9 @@ public class WebCrawler implements Crawler {
                         try {
                             task.run();
                         } finally {
-                            nowRunning--;
+                            synchronized (HostDownloadersControl.this) {
+                                nowRunning--;
+                            }
                             runNext();
                         }
                     });
@@ -64,7 +65,7 @@ public class WebCrawler implements Crawler {
         private ConcurrentLinkedQueue<String> level = new ConcurrentLinkedQueue<>();
         private Phaser levelPhaser;
 
-        Worker(String url) {
+        Worker(final String url) {
             level.add(url);
         }
 
@@ -75,9 +76,8 @@ public class WebCrawler implements Crawler {
             levelPhaser.register();
             pools.submitExtractor(() -> {
                 try {
-                    final var urls = page.extractLinks();
-                    level.addAll(urls);
-                } catch (IOException ignored) {
+                    level.addAll(page.extractLinks());
+                } catch (final IOException ignored) {
                 } finally {
                     levelPhaser.arrive();
                 }
@@ -88,11 +88,11 @@ public class WebCrawler implements Crawler {
             final String newHost;
             try {
                 newHost = URLUtils.getHost(link);
-            } catch (MalformedURLException e) {
+            } catch (final MalformedURLException e) {
                 errors.put(link, e);
                 return;
             }
-            var hostDownloader = downloaderFromHost
+            final var hostDownloader = downloaderFromHost
                     .computeIfAbsent(newHost, unused -> new HostDownloadersControl());
             levelPhaser.register();
             hostDownloader.run(() -> {
@@ -100,7 +100,7 @@ public class WebCrawler implements Crawler {
                     final var page = downloader.download(link);
                     results.add(link);
                     extract(page, nowDepth);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     errors.put(link, e);
                 } finally {
                     levelPhaser.arrive();
@@ -123,7 +123,7 @@ public class WebCrawler implements Crawler {
         }
     }
 
-    private static int checkedGet(final String[] args, int i) {
+    private static int checkedGet(final String[] args, final int i) {
         return i > args.length ? 1 : Integer.parseInt(args[i]);
     }
 
@@ -142,9 +142,9 @@ public class WebCrawler implements Crawler {
                     checkedGet(args, 3), checkedGet(args, 4))) {
                 crawler.download(args[0], checkedGet(args, 1));
             }
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             System.err.println("Arguments after first must be numbers: " + e.getMessage());
-        } catch (IOException e) {
+        } catch (final IOException e) {
             System.err.println("Failed to download: " + e.getMessage());
         }
     }

@@ -8,7 +8,8 @@ class Pools {
     private final ExecutorService extractorPool;
     private final ExecutorService downloaderPool;
     private final static int AWAIT = 1;
-    Pools(int extractors, int downloaders) {
+
+    Pools(final int extractors, final int downloaders) {
         if (extractors <= 0 || downloaders <= 0) {
             throw new IllegalArgumentException("extractors and downloaders count must be greater than 0");
         }
@@ -16,11 +17,11 @@ class Pools {
         downloaderPool = Executors.newFixedThreadPool(downloaders);
     }
 
-    void submitExtractor(Runnable runnable) {
+    void submitExtractor(final Runnable runnable) {
         extractorPool.submit(runnable);
     }
 
-    void submitDownloader(Runnable runnable) {
+    void submitDownloader(final Runnable runnable) {
         downloaderPool.submit(runnable);
     }
 
@@ -30,7 +31,7 @@ class Pools {
         try {
             extractorPool.awaitTermination(AWAIT, TimeUnit.MILLISECONDS);
             downloaderPool.awaitTermination(AWAIT, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             System.err.println("Can't terminate pools: " + e.getMessage());
         }
     }
