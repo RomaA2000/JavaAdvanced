@@ -2,7 +2,6 @@ package ru.ifmo.rain.ageev.hello;
 
 import java.io.IOException;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -10,8 +9,8 @@ import java.util.concurrent.TimeUnit;
 import static java.util.stream.IntStream.range;
 
 public class ClientWorker {
-    private static final int SECONDS_PER_REQUEST = 5;
-    private static final int AWAIT_FOR_RESPONSE = 200;
+    private static final int SECONDS_PER_REQUEST = 100;
+    private static final int AWAIT_FOR_RESPONSE = 1000;
 
     final SocketAddress address;
     final ExecutorService workers;
@@ -23,6 +22,10 @@ public class ClientWorker {
         this.threads = threads;
     }
 
+    public static String makeData(final String prefix, final int threadId, final int taskId) {
+        return prefix + threadId + "_" + taskId;
+    }
+
     public void run(final String prefix, final int requests) throws InterruptedException {
         range(0, threads).forEach(threadId -> workers.submit(
                 () -> work(prefix, threadId, requests)));
@@ -31,36 +34,27 @@ public class ClientWorker {
     }
 
     private void work(final String prefix, final int threadId, final int requests) {
-        try (DatagramSocket socket = new DatagramSocket()) {
-            socket.setSoTimeout(AWAIT_FOR_RESPONSE);
-            var size = socket.getReceiveBufferSize();
+        try (var datagramSocket = new DatagramSocket()) {
+            datagramSocket.setSoTimeout(AWAIT_FOR_RESPONSE);
+            var size = datagramSocket.getReceiveBufferSize();
             final var datagramPacket = new DatagramPacket(new byte[size], size, address);
-            range(0, requests).mapToObj(request -> NetUtils.makeData(prefix, threadId, request))
-                    .forEach(m -> sendAndReceive(m, socket, datagramPacket, size));
+            range(0, requests).mapToObj(request -> makeData(prefix, threadId, request))
+                    .forEach(m -> sendAndReceive(m, datagramSocket, datagramPacket, size));
         } catch (SocketException e) {
             System.err.println("Can't set connection with socket: " + e.getMessage());
         }
     }
 
-    private void sendAndReceive(final String message, final DatagramSocket socket,
+    private void sendAndReceive(final String message, final DatagramSocket datagramSocket,
                                 final DatagramPacket datagramPacket, final int size) {
-        while (!(socket.isClosed() || Thread.interrupted())) {
+        while (!(datagramSocket.isClosed() || Thread.currentThread().isInterrupted())) {
             NetUtils.setData(datagramPacket, message);
-            try {
-                socket.send(datagramPacket);
-            } catch (IOException e) {
-                System.err.println("Exception while sending: " + e.getMessage());
-            }
+            NetUtils.send(datagramSocket, datagramPacket);
             datagramPacket.setData(new byte[size]);
-            try {
-                socket.receive(datagramPacket);
-            } catch (IOException e) {
-                System.err.println("Exception while receiving: " + e.getMessage());
-            }
+            NetUtils.receive(datagramSocket, datagramPacket);
             var response = NetUtils.getData(datagramPacket);
-            if (response.contains(message)) {
+            if (true) {
                 System.out.println(response);
-                break;
             }
         }
     }

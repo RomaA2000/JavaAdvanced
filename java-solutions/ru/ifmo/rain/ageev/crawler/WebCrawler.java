@@ -62,12 +62,13 @@ public class WebCrawler implements Crawler {
         private final Set<String> usedUrls = ConcurrentHashMap.newKeySet();
         private final ConcurrentMap<String, IOException> errors = new ConcurrentHashMap<>();
         private ConcurrentLinkedQueue<String> level = new ConcurrentLinkedQueue<>();
+        private Phaser levelPhaser;
 
         Worker(String url) {
             level.add(url);
         }
 
-        private void extract(final Document page, final int nowDepth, final Phaser levelPhaser) {
+        private void extract(final Document page, final int nowDepth) {
             if (nowDepth == 0) {
                 return;
             }
@@ -83,7 +84,7 @@ public class WebCrawler implements Crawler {
             });
         }
 
-        private void download(final String link, final int nowDepth, final Phaser levelPhaser) {
+        private void download(final String link, final int nowDepth) {
             final String newHost;
             try {
                 newHost = URLUtils.getHost(link);
@@ -98,7 +99,7 @@ public class WebCrawler implements Crawler {
                 try {
                     final var page = downloader.download(link);
                     results.add(link);
-                    extract(page, nowDepth, levelPhaser);
+                    extract(page, nowDepth);
                 } catch (IOException e) {
                     errors.put(link, e);
                 } finally {
@@ -109,13 +110,13 @@ public class WebCrawler implements Crawler {
 
         public Result result(int depth) {
             while (depth-- > 0) {
-                final var levelPhaser = new Phaser(0);
+                levelPhaser = new Phaser(0);
                 final var newlevel = level;
                 level = new ConcurrentLinkedQueue<>();
                 final int nowDepth = depth;
                 newlevel.stream()
                         .filter(usedUrls::add)
-                        .forEach(link -> download(link, nowDepth, levelPhaser));
+                        .forEach(link -> download(link, nowDepth));
                 levelPhaser.awaitAdvance(0);
             }
             return new Result(new ArrayList<>(results), errors);
