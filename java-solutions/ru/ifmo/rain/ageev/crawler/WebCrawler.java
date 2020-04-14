@@ -19,6 +19,32 @@ public class WebCrawler implements Crawler {
         pools = new Pools(extractors, downloaders);
     }
 
+    private static int checkedGet(final String[] args, final int i) {
+        return i > args.length ? 1 : Integer.parseInt(args[i]);
+    }
+
+    /**
+     * This method is used to call the {@link WebCrawler#download}.
+     *
+     * @param args the arguments
+     */
+    public static void main(final String[] args) {
+        if (args == null || args.length == 0 || Arrays.stream(args).anyMatch(Objects::isNull)) {
+            System.err.println("Url [depth [downloads [extractors [perHost]]]]");
+            return;
+        }
+        try {
+            try (final WebCrawler crawler = new WebCrawler(new CachingDownloader(), checkedGet(args, 2),
+                    checkedGet(args, 3), checkedGet(args, 4))) {
+                crawler.download(args[0], checkedGet(args, 1));
+            }
+        } catch (final NumberFormatException e) {
+            System.err.println("Arguments after first must be numbers: " + e.getMessage());
+        } catch (final IOException e) {
+            System.err.println("Failed to download: " + e.getMessage());
+        }
+    }
+
     @Override
     public Result download(final String url, final int depth) {
         return new Worker(url).result(depth);
@@ -38,6 +64,11 @@ public class WebCrawler implements Crawler {
             runNext();
         }
 
+        public synchronized void next() {
+            nowRunning--;
+            runNext();
+        }
+
         private synchronized void runNext() {
             if (nowRunning < perHost) {
                 if (!tasksQueue.isEmpty()) {
@@ -47,10 +78,7 @@ public class WebCrawler implements Crawler {
                         try {
                             task.run();
                         } finally {
-                            synchronized (HostDownloadersControl.this) {
-                                nowRunning--;
-                            }
-                            runNext();
+                            next();
                         }
                     });
                 }
@@ -120,32 +148,6 @@ public class WebCrawler implements Crawler {
                 levelPhaser.awaitAdvance(0);
             }
             return new Result(new ArrayList<>(results), errors);
-        }
-    }
-
-    private static int checkedGet(final String[] args, final int i) {
-        return i > args.length ? 1 : Integer.parseInt(args[i]);
-    }
-
-    /**
-     * This method is used to call the {@link WebCrawler#download}.
-     *
-     * @param args the arguments
-     */
-    public static void main(final String[] args) {
-        if (args == null || args.length == 0 || Arrays.stream(args).anyMatch(Objects::isNull)) {
-            System.err.println("Url [depth [downloads [extractors [perHost]]]]");
-            return;
-        }
-        try {
-            try (final WebCrawler crawler = new WebCrawler(new CachingDownloader(), checkedGet(args, 2),
-                    checkedGet(args, 3), checkedGet(args, 4))) {
-                crawler.download(args[0], checkedGet(args, 1));
-            }
-        } catch (final NumberFormatException e) {
-            System.err.println("Arguments after first must be numbers: " + e.getMessage());
-        } catch (final IOException e) {
-            System.err.println("Failed to download: " + e.getMessage());
         }
     }
 }
