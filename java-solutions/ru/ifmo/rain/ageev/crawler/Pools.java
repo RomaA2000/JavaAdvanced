@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 class Pools {
     private final ExecutorService extractorPool;
     private final ExecutorService downloaderPool;
-    private final static int AWAIT = 200;
+    private final static int AWAIT = 1;
     Pools(int extractors, int downloaders) {
         if (extractors <= 0 || downloaders <= 0) {
             throw new IllegalArgumentException("extractors and downloaders count must be greater than 0");
