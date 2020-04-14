@@ -16,7 +16,8 @@ public class HelloUDPServer implements HelloServer {
             return;
         }
         try {
-            new HelloUDPServer().start(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+            var server = new HelloUDPServer();
+            server.start(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
         } catch (NumberFormatException e) {
             System.err.println("Arguments must be integers: " + e.getMessage());
         }

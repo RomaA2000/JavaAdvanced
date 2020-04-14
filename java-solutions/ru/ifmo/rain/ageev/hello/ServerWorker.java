@@ -2,13 +2,14 @@ package ru.ifmo.rain.ageev.hello;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.stream.IntStream.range;
 
-public class ServerWorker {
+class ServerWorker {
+    private final static int AWAIT = 200;
     final ExecutorService workers;
     final DatagramSocket datagramSocket;
     final int size;
@@ -38,5 +39,10 @@ public class ServerWorker {
     public void shutdown() {
         datagramSocket.close();
         workers.shutdown();
+        try {
+            workers.awaitTermination(AWAIT, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            System.err.println("Can't terminate pools: " + e.getMessage());
+        }
     }
 }

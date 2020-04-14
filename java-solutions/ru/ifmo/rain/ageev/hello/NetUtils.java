@@ -33,4 +33,9 @@ class NetUtils {
     public static String getData(final DatagramPacket packet) {
         return new String(packet.getData(), packet.getOffset(), packet.getLength(), StandardCharsets.UTF_8);
     }
+
+    static boolean check(String s, int threadId, int requestId) {
+        final String expr = "[\\D]*";
+        return s.matches( expr + threadId + expr + requestId + expr);
+    }
 }

@@ -8,13 +8,14 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.stream.IntStream.range;
 
-public class ClientWorker {
-    private static final int SECONDS_PER_REQUEST = 100;
-    private static final int AWAIT_FOR_RESPONSE = 1000;
+class ClientWorker {
+    private static final int SECONDS_PER_REQUEST = 5;
+    private static final int AWAIT_FOR_RESPONSE = 200;
 
     final SocketAddress address;
     final ExecutorService workers;
     final int threads;
+    int size;
 
     public ClientWorker(final InetAddress host, final int port, final int threads) {
         address = new InetSocketAddress(host, port);
@@ -36,25 +37,27 @@ public class ClientWorker {
     private void work(final String prefix, final int threadId, final int requests) {
         try (var datagramSocket = new DatagramSocket()) {
             datagramSocket.setSoTimeout(AWAIT_FOR_RESPONSE);
-            var size = datagramSocket.getReceiveBufferSize();
+            size = datagramSocket.getReceiveBufferSize();
             final var datagramPacket = new DatagramPacket(new byte[size], size, address);
-            range(0, requests).mapToObj(request -> makeData(prefix, threadId, request))
-                    .forEach(m -> sendAndReceive(m, datagramSocket, datagramPacket, size));
+            range(0, requests).forEachOrdered(
+                    request -> sendAndReceive(prefix, request, threadId, datagramSocket, datagramPacket));
         } catch (SocketException e) {
             System.err.println("Can't set connection with socket: " + e.getMessage());
         }
     }
 
-    private void sendAndReceive(final String message, final DatagramSocket datagramSocket,
-                                final DatagramPacket datagramPacket, final int size) {
+    private void sendAndReceive(final String prefix, final int requestId, final int threadId, final DatagramSocket datagramSocket,
+                                final DatagramPacket datagramPacket) {
+        String message = makeData(prefix, threadId, requestId);
         while (!(datagramSocket.isClosed() || Thread.currentThread().isInterrupted())) {
             NetUtils.setData(datagramPacket, message);
             NetUtils.send(datagramSocket, datagramPacket);
             datagramPacket.setData(new byte[size]);
             NetUtils.receive(datagramSocket, datagramPacket);
             var response = NetUtils.getData(datagramPacket);
-            if (true) {
+            if (NetUtils.check(response, threadId, requestId)) {
                 System.out.println(response);
+                break;
             }
         }
     }
