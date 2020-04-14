@@ -16,7 +16,7 @@ public class HelloUDPClient implements HelloClient {
         try {
             new HelloUDPClient().run(args[0], Integer.parseInt(args[1]), args[2],
                     Integer.parseInt(args[3]), Integer.parseInt(args[4]));
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             System.out.println("Arguments must be integers: " + e.getMessage());
         }
     }
@@ -33,9 +33,9 @@ public class HelloUDPClient implements HelloClient {
         }
         try {
             new ClientWorker(InetAddress.getByName(host), port, threads).run(prefix, requests);
-        } catch (UnknownHostException e) {
+        } catch (final UnknownHostException e) {
             System.err.println("Unable to reach specified host: " + e.getMessage());
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             System.err.println("Execution was interrupted: " + e.getMessage());
         }
     }

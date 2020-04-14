@@ -13,7 +13,7 @@ class NetUtils {
     public static void receive(final DatagramSocket socket, final DatagramPacket packet) {
         try {
             socket.receive(packet);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             if (!socket.isClosed()) {
                 System.err.println("Exception while receiving: " + e.getMessage());
             }
@@ -23,7 +23,7 @@ class NetUtils {
     public static void send(final DatagramSocket socket, final DatagramPacket packet) {
         try {
             socket.send(packet);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             if (!socket.isClosed()) {
                 System.err.println("Exception while sending: " + e.getMessage());
             }
@@ -34,7 +34,7 @@ class NetUtils {
         return new String(packet.getData(), packet.getOffset(), packet.getLength(), StandardCharsets.UTF_8);
     }
 
-    static boolean check(String s, int threadId, int requestId) {
+    static boolean check(final String s, final int threadId, final int requestId) {
         final String expr = "[\\D]*";
         return s.matches( expr + threadId + expr + requestId + expr);
     }

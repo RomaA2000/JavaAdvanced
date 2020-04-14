@@ -16,24 +16,23 @@ public class HelloUDPServer implements HelloServer {
             return;
         }
         try {
-            var server = new HelloUDPServer();
-            server.start(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
-        } catch (NumberFormatException e) {
+            new HelloUDPServer().start(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+        } catch (final NumberFormatException e) {
             System.err.println("Arguments must be integers: " + e.getMessage());
         }
     }
 
     @Override
-    public void start(int port, int threads) {
+    public void start(final int port, final int threads) {
         if (threads <= 0) {
             throw new IllegalArgumentException("threads count must be greater than 0");
         }
         try {
-            var datagramSocket = new DatagramSocket(port);
-            var size = datagramSocket.getReceiveBufferSize();
+            final var datagramSocket = new DatagramSocket(port);
+            final var size = datagramSocket.getReceiveBufferSize();
             serverWorker = new ServerWorker(datagramSocket, size, threads);
-            serverWorker.run();
-        } catch (SocketException e) {
+            serverWorker.start();
+        } catch (final SocketException e) {
             System.err.println("Failed to create socket or get his buffer size: " + e.getMessage());
         }
     }

@@ -5,6 +5,7 @@ import java.net.DatagramSocket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static java.util.stream.IntStream.range;
 
@@ -22,13 +23,13 @@ class ServerWorker {
         this.threads = threads;
     }
 
-    public void run() {
-        range(0, threads).forEach(threadId -> workers.submit(
-                this::work));
+    public void start() {
+//        Stream.generate(this::work/
+        range(0, threads).forEach(threadId -> workers.submit(this::work));
     }
 
     private void work() {
-        var datagramPacket = new DatagramPacket(new byte[size], size);
+        final var datagramPacket = new DatagramPacket(new byte[size], size);
         while (!(Thread.currentThread().isInterrupted() || datagramSocket.isClosed())) {
             NetUtils.receive(datagramSocket, datagramPacket);
             NetUtils.setData(datagramPacket, "Hello, " + NetUtils.getData(datagramPacket));
