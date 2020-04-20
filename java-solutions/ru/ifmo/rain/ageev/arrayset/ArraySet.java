@@ -1,4 +1,4 @@
-package ru.ifmo.ageev.arrayset;
+package ru.ifmo.rain.ageev.arrayset;
 
 import java.util.*;
 

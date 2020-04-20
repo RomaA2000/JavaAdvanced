@@ -1,4 +1,4 @@
-package ru.ifmo.ageev.walk;
+package ru.ifmo.rain.ageev.walk;
 
 import java.io.BufferedWriter;
 import java.io.FileInputStream;

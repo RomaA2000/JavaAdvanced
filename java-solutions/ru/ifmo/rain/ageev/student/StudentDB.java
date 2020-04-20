@@ -1,4 +1,4 @@
-package ru.ifmo.ageev.student;
+package ru.ifmo.rain.ageev.student;
 
 import info.kgeorgiy.java.advanced.student.AdvancedStudentGroupQuery;
 import info.kgeorgiy.java.advanced.student.Group;

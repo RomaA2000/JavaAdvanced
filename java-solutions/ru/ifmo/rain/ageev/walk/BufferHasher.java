@@ -1,4 +1,4 @@
-package ru.ifmo.ageev.walk;
+package ru.ifmo.rain.ageev.walk;
 
 public class BufferHasher {
     private static final int PRIME_NUMBER_BIG = 0x01000193;

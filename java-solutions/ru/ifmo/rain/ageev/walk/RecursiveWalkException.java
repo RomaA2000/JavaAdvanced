@@ -1,4 +1,4 @@
-package ru.ifmo.ageev.walk;
+package ru.ifmo.rain.ageev.walk;
 
 public class RecursiveWalkException extends Exception {
     RecursiveWalkException(final String information, final Throwable cause) {
