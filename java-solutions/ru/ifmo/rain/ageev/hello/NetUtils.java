@@ -34,8 +34,34 @@ class NetUtils {
         return new String(packet.getData(), packet.getOffset(), packet.getLength(), StandardCharsets.UTF_8);
     }
 
-    static boolean check(final String s, final int threadId, final int requestId) {
-        final String expr = "[\\D]*";
-        return s.matches( expr + threadId + expr + requestId + expr);
+    public static int skipByDigitsImpl(int idx, String s, boolean needToSkip) {
+        while ((idx < s.length()) && (Character.isDigit(s.charAt(idx)) ^ needToSkip)) {
+            idx++;
+        }
+        return idx;
+    }
+
+    public static int skipToDigits(int idx, String s) {
+        return skipByDigitsImpl(idx, s, true);
+    }
+
+    public static int skipDigits(int idx, String s) {
+        return skipByDigitsImpl(idx, s, false);
+    }
+
+    public static boolean check(final String string, final int threadId, final int requestId) {
+        final String idThread = Integer.toString(threadId);
+        final String idRequest = Integer.toString(requestId);
+        int firsNumberStart = skipToDigits(0, string);
+        int firsNumberEnd = skipDigits(firsNumberStart, string);
+        if (!idThread.equals(string.substring(firsNumberStart, firsNumberEnd))) {
+            return false;
+        }
+        firsNumberStart = skipToDigits(firsNumberEnd, string);
+        firsNumberEnd = skipDigits(firsNumberStart, string);
+        if (!idRequest.equals(string.substring(firsNumberStart, firsNumberEnd))) {
+            return false;
+        }
+        return string.length() == skipToDigits(firsNumberEnd, string);
     }
 }
