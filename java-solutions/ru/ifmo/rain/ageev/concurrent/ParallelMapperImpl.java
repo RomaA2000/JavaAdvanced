@@ -59,8 +59,8 @@ public class ParallelMapperImpl implements ParallelMapper, AutoCloseable {
                 return null;
             }
             coll = new Collector<>(function, list);
-            tasksQueue.addTask(coll);
         }
+        tasksQueue.addTask(coll);
         return coll.getResult();
     }
 

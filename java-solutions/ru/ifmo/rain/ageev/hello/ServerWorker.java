@@ -31,9 +31,10 @@ class ServerWorker {
         final var datagramPacket = new DatagramPacket(buffer, size);
         while (!(Thread.currentThread().isInterrupted() || datagramSocket.isClosed())) {
             datagramPacket.setData(buffer);
-            NetUtils.receive(datagramSocket, datagramPacket);
-            NetUtils.setData(datagramPacket, "Hello, " + NetUtils.getData(datagramPacket));
-            NetUtils.send(datagramSocket, datagramPacket);
+            if (NetUtils.receive(datagramSocket, datagramPacket)) {
+                NetUtils.setData(datagramPacket, "Hello, " + NetUtils.getData(datagramPacket));
+                NetUtils.send(datagramSocket, datagramPacket);
+            }
         }
     }
 

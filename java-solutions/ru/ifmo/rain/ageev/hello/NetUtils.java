@@ -10,23 +10,27 @@ class NetUtils {
         packet.setData(s.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static void receive(final DatagramSocket socket, final DatagramPacket packet) {
+    public static boolean receive(final DatagramSocket socket, final DatagramPacket packet) {
         try {
             socket.receive(packet);
+            return true;
         } catch (final IOException e) {
             if (!socket.isClosed()) {
                 System.err.println("Exception while receiving: " + e.getMessage());
             }
+            return false;
         }
     }
 
-    public static void send(final DatagramSocket socket, final DatagramPacket packet) {
+    public static boolean send(final DatagramSocket socket, final DatagramPacket packet) {
         try {
             socket.send(packet);
+            return true;
         } catch (final IOException e) {
             if (!socket.isClosed()) {
                 System.err.println("Exception while sending: " + e.getMessage());
             }
+            return false;
         }
     }
 

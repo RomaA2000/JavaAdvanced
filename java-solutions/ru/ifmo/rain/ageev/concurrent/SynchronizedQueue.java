@@ -14,7 +14,7 @@ class SynchronizedQueue {
     private final Queue<Collector<?, ?>> tasksQueue = new ArrayDeque<>();
 
     /**
-     * Runs task from {@link Queue}.
+     * Runs task from {@link Queue}
      */
     public synchronized Runnable getNext() throws InterruptedException {
         while (tasksQueue.isEmpty()) {

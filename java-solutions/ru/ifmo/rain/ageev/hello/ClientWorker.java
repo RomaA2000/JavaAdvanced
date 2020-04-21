@@ -48,16 +48,18 @@ class ClientWorker {
 
     private void sendAndReceive(final String prefix, final int requestId, final int threadId, final DatagramSocket datagramSocket,
                                 final DatagramPacket datagramPacket) {
-        String message = makeData(prefix, threadId, requestId);
+        final String message = makeData(prefix, threadId, requestId);
         while (!(datagramSocket.isClosed() || Thread.currentThread().isInterrupted())) {
             NetUtils.setData(datagramPacket, message);
-            NetUtils.send(datagramSocket, datagramPacket);
-            datagramPacket.setData(new byte[size]);
-            NetUtils.receive(datagramSocket, datagramPacket);
-            var response = NetUtils.getData(datagramPacket);
-            if (NetUtils.check(response, threadId, requestId)) {
-                System.out.println(response);
-                break;
+            if (NetUtils.send(datagramSocket, datagramPacket)) {
+                datagramPacket.setData(new byte[size]);
+                if (NetUtils.receive(datagramSocket, datagramPacket)) {
+                    var response = NetUtils.getData(datagramPacket);
+                    if (NetUtils.check(response, threadId, requestId)) {
+                        System.out.println(response);
+                        break;
+                    }
+                }
             }
         }
     }
