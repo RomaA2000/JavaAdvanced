@@ -15,7 +15,7 @@ class ServerWorker {
     final int size;
     final int threads;
 
-    public ServerWorker(DatagramSocket datagramSocket, final int size, final int threads) {
+    public ServerWorker(final DatagramSocket datagramSocket, final int size, final int threads) {
         this.datagramSocket = datagramSocket;
         workers = Executors.newFixedThreadPool(threads);
         this.size = size;
@@ -42,7 +42,7 @@ class ServerWorker {
         workers.shutdown();
         try {
             workers.awaitTermination(AWAIT, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             System.err.println("Can't terminate pools: " + e.getMessage());
         }
     }

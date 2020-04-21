@@ -27,6 +27,7 @@ public class HelloUDPServer implements HelloServer {
         if (threads <= 0) {
             throw new IllegalArgumentException("threads count must be greater than 0");
         }
+
         try {
             final var datagramSocket = new DatagramSocket(port);
             final var size = datagramSocket.getReceiveBufferSize();
