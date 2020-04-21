@@ -29,6 +29,7 @@ class ServerWorker {
     private void work() {
         final var datagramPacket = new DatagramPacket(new byte[size], size);
         while (!(Thread.currentThread().isInterrupted() || datagramSocket.isClosed())) {
+            datagramPacket.setData(new byte[size]);
             NetUtils.receive(datagramSocket, datagramPacket);
             NetUtils.setData(datagramPacket, "Hello, " + NetUtils.getData(datagramPacket));
             NetUtils.send(datagramSocket, datagramPacket);
