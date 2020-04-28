@@ -98,7 +98,7 @@ public class WebCrawler implements Crawler {
         }
 
         private void extract(final Document page, final int nowDepth) {
-            if (nowDepth == 0) {
+            if (nowDepth < 1) {
                 return;
             }
             levelPhaser.register();
