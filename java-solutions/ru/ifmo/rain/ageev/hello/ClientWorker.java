@@ -35,7 +35,7 @@ class ClientWorker {
     }
 
     private void work(final String prefix, final int threadId, final int requests) {
-        try (var datagramSocket = new DatagramSocket()) {
+        try (final var datagramSocket = new DatagramSocket()) {
             datagramSocket.setSoTimeout(AWAIT_FOR_RESPONSE);
             size = datagramSocket.getReceiveBufferSize();
             final var datagramPacket = new DatagramPacket(new byte[size], size, address);
@@ -52,6 +52,7 @@ class ClientWorker {
         while (!(datagramSocket.isClosed() || Thread.currentThread().isInterrupted())) {
             NetUtils.setData(datagramPacket, message);
             if (NetUtils.send(datagramSocket, datagramPacket)) {
+                // :NOTE: Переиспользование
                 datagramPacket.setData(new byte[size]);
                 if (NetUtils.receive(datagramSocket, datagramPacket)) {
                     var response = NetUtils.getData(datagramPacket);

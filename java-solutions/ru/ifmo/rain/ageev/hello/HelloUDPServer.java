@@ -20,12 +20,12 @@ public class HelloUDPServer implements HelloServer {
         }
         try {
             new HelloUDPServer().start(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
-            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Press any key to terminate");
             reader.readLine();
         } catch (final NumberFormatException e) {
             System.err.println("Arguments must be integers: " + e.getMessage());
-        } catch (IOException e) {
+        } catch (final IOException e) {
             System.err.println("IO error occurred: " + e.getMessage());
         }
     }
