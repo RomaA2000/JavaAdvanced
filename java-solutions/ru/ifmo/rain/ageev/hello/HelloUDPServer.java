@@ -2,6 +2,9 @@ package ru.ifmo.rain.ageev.hello;
 
 import info.kgeorgiy.java.advanced.hello.HelloServer;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.Arrays;
@@ -17,8 +20,13 @@ public class HelloUDPServer implements HelloServer {
         }
         try {
             new HelloUDPServer().start(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.println("Press any key to terminate");
+            reader.readLine();
         } catch (final NumberFormatException e) {
             System.err.println("Arguments must be integers: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("IO error occurred: " + e.getMessage());
         }
     }
 
@@ -27,7 +35,6 @@ public class HelloUDPServer implements HelloServer {
         if (threads <= 0) {
             throw new IllegalArgumentException("threads count must be greater than 0");
         }
-
         try {
             final var datagramSocket = new DatagramSocket(port);
             final var size = datagramSocket.getReceiveBufferSize();
