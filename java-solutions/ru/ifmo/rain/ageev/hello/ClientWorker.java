@@ -49,11 +49,11 @@ class ClientWorker {
     private void sendAndReceive(final String prefix, final int requestId, final int threadId, final DatagramSocket datagramSocket,
                                 final DatagramPacket datagramPacket) {
         final String message = makeData(prefix, threadId, requestId);
+        final var buffer = new byte[size];
         while (!(datagramSocket.isClosed() || Thread.currentThread().isInterrupted())) {
             NetUtils.setData(datagramPacket, message);
             if (NetUtils.send(datagramSocket, datagramPacket)) {
-                // :NOTE: Переиспользование
-                datagramPacket.setData(new byte[size]);
+                datagramPacket.setData(buffer);
                 if (NetUtils.receive(datagramSocket, datagramPacket)) {
                     var response = NetUtils.getData(datagramPacket);
                     if (NetUtils.check(response, threadId, requestId)) {

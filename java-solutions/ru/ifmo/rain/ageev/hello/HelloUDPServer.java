@@ -21,7 +21,7 @@ public class HelloUDPServer implements HelloServer {
         try {
             new HelloUDPServer().start(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
             final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            System.out.println("Press any key to terminate");
+            System.out.println("Press any key to terminate server");
             reader.readLine();
         } catch (final NumberFormatException e) {
             System.err.println("Arguments must be integers: " + e.getMessage());
