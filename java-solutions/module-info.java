@@ -14,4 +14,5 @@ module ru.ifmo.rain.ageev {
     requires info.kgeorgiy.java.advanced.student;
     requires info.kgeorgiy.java.advanced.walk;
     requires java.compiler;
+    requires java.rmi;
 }
