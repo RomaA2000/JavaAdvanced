@@ -1,7 +1,5 @@
 package ru.ifmo.rain.ageev.bank.interfaces;
 
-import ru.ifmo.rain.ageev.bank.interfaces.Account;
-
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Map;

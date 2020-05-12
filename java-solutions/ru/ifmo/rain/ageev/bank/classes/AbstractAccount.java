@@ -6,10 +6,6 @@ public abstract class AbstractAccount implements Account {
     private String accountId;
     private int accountAmount;
 
-    public AbstractAccount() {
-        this(null, 0);
-    }
-
     public AbstractAccount(final String accountId) {
         this(accountId, 0);
     }
