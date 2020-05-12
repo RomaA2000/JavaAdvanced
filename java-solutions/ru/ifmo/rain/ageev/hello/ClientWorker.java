@@ -49,6 +49,7 @@ class ClientWorker {
     private void sendAndReceive(final String prefix, final int requestId, final int threadId, final DatagramSocket datagramSocket,
                                 final DatagramPacket datagramPacket) {
         final String message = makeData(prefix, threadId, requestId);
+        // :NOTE: переиспользование
         final var buffer = new byte[size];
         while (!(datagramSocket.isClosed() || Thread.currentThread().isInterrupted())) {
             NetUtils.setData(datagramPacket, message);
