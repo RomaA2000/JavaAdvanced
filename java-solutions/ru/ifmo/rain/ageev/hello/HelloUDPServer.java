@@ -47,6 +47,8 @@ public class HelloUDPServer implements HelloServer {
 
     @Override
     public void close() {
-        serverWorker.shutdown();
+        if (serverWorker != null) {
+            serverWorker.shutdown();
+        }
     }
 }
