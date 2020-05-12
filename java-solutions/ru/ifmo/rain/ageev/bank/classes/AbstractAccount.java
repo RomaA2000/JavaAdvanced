@@ -3,7 +3,7 @@ package ru.ifmo.rain.ageev.bank.classes;
 import ru.ifmo.rain.ageev.bank.interfaces.Account;
 
 public abstract class AbstractAccount implements Account {
-    private String accountId;
+    private final String accountId;
     private int accountAmount;
 
     public AbstractAccount(final String accountId) {
@@ -11,7 +11,6 @@ public abstract class AbstractAccount implements Account {
     }
 
     public AbstractAccount(final String accountId, final int accountAmount) {
-        super();
         this.accountId = accountId;
         this.accountAmount = accountAmount;
     }

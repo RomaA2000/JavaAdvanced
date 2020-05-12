@@ -7,16 +7,16 @@ import java.rmi.RemoteException;
 
 public class RemotePerson extends AbstractPerson {
     private final Bank bank;
-    public RemotePerson(String firstName, String secondName, int passportId, Bank bank) {
+    public RemotePerson(final String firstName, final String secondName, final int passportId, final Bank bank) {
         super(firstName, secondName, passportId);
         this.bank = bank;
     }
 
     @Override
     public Account createNewAccountBySubId(final String subId) throws RemoteException {
-        var accountId = getAccountId(subId);
-        var account = bank.addAccount(accountId);
-        var prevAccount = putIfAbsent(subId, account);
+        final var accountId = getAccountId(subId);
+        final var account = bank.addAccount(accountId);
+        final var prevAccount = putIfAbsent(subId, account);
         if (prevAccount != null) {
             return prevAccount;
         }

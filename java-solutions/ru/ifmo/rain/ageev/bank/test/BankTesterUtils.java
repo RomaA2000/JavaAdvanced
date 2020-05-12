@@ -57,7 +57,7 @@ public class BankTesterUtils extends BaseTests {
         if (bank == null) {
             throw new AssertionError();
         }
-        List<BaseTests.Command<RemoteException>> commands = new ArrayList<>();
+        final List<BaseTests.Command<RemoteException>> commands = new ArrayList<>();
         for (int now_person = 0; now_person < personNumber; now_person++) {
             final var person = personId + now_person;
             bank.addPerson(person, person, person.hashCode());

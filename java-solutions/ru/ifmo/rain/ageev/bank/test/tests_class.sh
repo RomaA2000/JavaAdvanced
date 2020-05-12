@@ -17,7 +17,7 @@ rm -rf ${out_my_path}
 echo ${out_my_path}
 
 javac -cp .:${junit} \
-      ${src}/*.java ${src}/*.java ${src}/interfaces/*.java ${src}/classes/*.java ${src}/test/*.java -d ${out_my_path}
+      "${src}/*.java" ${src}/*.java ${src}/interfaces/*.java ${src}/classes/*.java ${src}/test/*.java -d ${out_my_path}
 
 cd ${out_my_path} || exit 1
 
