@@ -38,19 +38,18 @@ class ClientWorker {
         try (final var datagramSocket = new DatagramSocket()) {
             datagramSocket.setSoTimeout(AWAIT_FOR_RESPONSE);
             size = datagramSocket.getReceiveBufferSize();
-            final var datagramPacket = new DatagramPacket(new byte[size], size, address);
+            final var buffer = new byte[size];
+            final var datagramPacket = new DatagramPacket(buffer, size, address);
             range(0, requests).forEachOrdered(
-                    request -> sendAndReceive(prefix, request, threadId, datagramSocket, datagramPacket));
+                    request -> sendAndReceive(buffer, prefix, request, threadId, datagramSocket, datagramPacket));
         } catch (SocketException e) {
             System.err.println("Can't set connection with socket: " + e.getMessage());
         }
     }
 
-    private void sendAndReceive(final String prefix, final int requestId, final int threadId, final DatagramSocket datagramSocket,
+    private void sendAndReceive(final byte[] buffer,final String prefix, final int requestId, final int threadId, final DatagramSocket datagramSocket,
                                 final DatagramPacket datagramPacket) {
         final String message = makeData(prefix, threadId, requestId);
-        // :NOTE: переиспользование
-        final var buffer = new byte[size];
         while (!(datagramSocket.isClosed() || Thread.currentThread().isInterrupted())) {
             NetUtils.setData(datagramPacket, message);
             if (NetUtils.send(datagramSocket, datagramPacket)) {
