@@ -40,7 +40,7 @@ public class Tests extends BankTester {
     @Test
     public void test0_account_creator() {
         addRemoteAccount(id);
-        assertNull(addRemoteAccount(id));
+        assertNotNull(addRemoteAccount(id));
     }
 
     @Test
@@ -104,41 +104,56 @@ public class Tests extends BankTester {
 
     @Test
     public void test2_simple_increases_async() throws RemoteException, MalformedURLException, NotBoundException {
-        app(1, 1, 10);
+        app(1, 1, 10, 2);
     }
 
     @Test
     public void test2_simple_many_increases_async() throws RemoteException, MalformedURLException, NotBoundException {
-        app(1, 1, 100);
+        app(1, 1, 50, 2);
     }
 
     @Test
     public void test2_many_accounts_increases_async() throws RemoteException, MalformedURLException, NotBoundException {
-        app(1, 10, 10);
+        app(1, 10, 10, 2);
     }
 
     @Test
     public void test2_too_many_accounts_increases_async() throws RemoteException, MalformedURLException, NotBoundException {
-        app(1, 100, 2);
+        app(1, 50, 2, 4);
     }
 
     @Test
-    public void test3_many_clients_increase() throws RemoteException, MalformedURLException, NotBoundException {
-        app(10, 1, 2);
+    public void test3_many_persons_increase_async() throws RemoteException, MalformedURLException, NotBoundException {
+        app(10, 1, 2, 4);
     }
 
     @Test
-    public void test3_many_clients_many_accounts_increase() throws RemoteException, MalformedURLException, NotBoundException {
-        app(10, 10, 2);
+    public void test3_many_persons_many_accounts_increase_async() throws RemoteException, MalformedURLException, NotBoundException {
+        app(10, 10, 2,4);
     }
 
     @Test
-    public void test3_too_many_clients_many_accounts_increase() throws RemoteException, MalformedURLException, NotBoundException {
-        app(100, 10, 2);
+    public void test3_too_many_persons_many_accounts_increase_async() throws RemoteException, MalformedURLException, NotBoundException {
+        app(50, 10, 2, 4);
     }
 
     @Test
-    public void test3_too_many_clients_too_many_accounts_increase() throws RemoteException, MalformedURLException, NotBoundException {
-        app(20, 20, 2);
+    public void test3_too_many_persons_too_many_accounts_increase_async() throws RemoteException, MalformedURLException, NotBoundException {
+        app(20, 20, 2,4);
+    }
+
+    @Test
+    public void test2_too_many_accounts_increases_many_threads_async() throws RemoteException, MalformedURLException, NotBoundException {
+        app(1, 50, 2, 8);
+    }
+
+    @Test
+    public void test3_too_many_persons_many_accounts_increase_many_threads_async() throws RemoteException, MalformedURLException, NotBoundException {
+        app(50, 10, 2, 8);
+    }
+
+    @Test
+    public void test3_too_many_persons_too_many_accounts_increase__many_threads_async() throws RemoteException, MalformedURLException, NotBoundException {
+        app(15, 15, 2,8);
     }
 }

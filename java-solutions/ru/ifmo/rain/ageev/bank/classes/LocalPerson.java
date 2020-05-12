@@ -18,9 +18,9 @@ public class LocalPerson extends AbstractPerson implements Serializable {
         final var accountId = getAccountId(subId);
         final var newLocalAccount = new LocalAccount(accountId);
         final var account = putIfAbsent(subId, newLocalAccount);
-        if (account == null) {
-            return newLocalAccount;
+        if (account != null) {
+            return account;
         }
-        return null;
+        return newLocalAccount;
     }
 }

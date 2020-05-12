@@ -16,10 +16,10 @@ public class RemotePerson extends AbstractPerson {
     public Account createNewAccountBySubId(final String subId) throws RemoteException {
         var accountId = getAccountId(subId);
         var account = bank.addAccount(accountId);
-        if (account == null) {
-            return null;
+        var prevAccount = putIfAbsent(subId, account);
+        if (prevAccount != null) {
+            return prevAccount;
         }
-        put(subId, account);
         return account;
     }
 }

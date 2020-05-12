@@ -49,15 +49,17 @@ public class BankTesterUtils extends BaseTests {
         }
     }
 
-    protected static void app(final int personNumber, final int accountNumber, final int counter) throws RemoteException, MalformedURLException, NotBoundException {
+    protected static void app(final int personNumber, final int accountNumber, final int counter, final int threads) throws RemoteException, MalformedURLException, NotBoundException {
         Server.main(null);
+        final String personId = "person_id_";
+        final String accountId = "account_id_";
         final Bank bank = Utils.getBank();
         if (bank == null) {
             throw new AssertionError();
         }
         List<BaseTests.Command<RemoteException>> commands = new ArrayList<>();
         for (int now_person = 0; now_person < personNumber; now_person++) {
-            final var person = "intresting_person_id_" + now_person;
+            final var person = personId + now_person;
             bank.addPerson(person, person, person.hashCode());
             final var remotePerson = bank.getRemotePerson(person.hashCode());
             checkPerson(remotePerson, person, person, person.hashCode());
@@ -65,10 +67,11 @@ public class BankTesterUtils extends BaseTests {
                 final var args = new String[]{person, person, Integer.toString(person.hashCode()), "not_used", "1"};
                 assertNotNull(remotePerson);
                 for (int now_account = 0; now_account < accountNumber; now_account++) {
-                    args[3] = "intresting_account_id_" + now_account;
+                    args[3] = accountId + now_account;
                     for (int inc_num = 0; inc_num < counter; inc_num++) {
                         Client.main(args);
                         var account = remotePerson.getAccount(args[3]);
+                        assertNotNull(account);
                         assertEquals(inc_num + 1, account.getAmount());
                     }
                 }

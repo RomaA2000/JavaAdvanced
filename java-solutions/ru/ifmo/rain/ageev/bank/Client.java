@@ -46,8 +46,7 @@ public class Client {
             var person = bank.getRemotePerson(passportId);
             if (person == null) {
                 System.out.println("Making person");
-                bank.addPerson(firstName, lastName, passportId);
-                person = bank.getRemotePerson(passportId);
+                person = bank.addPerson(firstName, lastName, passportId);
             }
             if (person.firstName().equals(firstName) && person.lastName().equals(lastName) && person.passportId() == passportId) {
                 System.out.println("Person checked");
@@ -58,8 +57,7 @@ public class Client {
             var account = person.getAccount(accountSubId);
             if (account == null) {
                 System.out.println("Adding new account");
-                person.createNewAccountBySubId(accountSubId);
-                account = person.getAccount(accountSubId);
+                account = person.createNewAccountBySubId(accountSubId);
             }
             System.out.println("Money before: " + account.getAmount());
             System.out.println("Increasing amount...");

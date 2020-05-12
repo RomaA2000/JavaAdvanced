@@ -23,11 +23,11 @@ public class RemoteBank extends UnicastRemoteObject implements Bank {
     public Account addAccount(String id) throws RemoteException {
         final var newRemoteAccount = new RemoteAccount(id);
         UnicastRemoteObject.exportObject(newRemoteAccount, port);
-        final var account = accounts.putIfAbsent(id, newRemoteAccount);
-        if (account == null) {
-            return newRemoteAccount;
+        var realAccount = accounts.putIfAbsent(id, newRemoteAccount);
+        if (realAccount != null) {
+            return realAccount;
         }
-        return null;
+        return newRemoteAccount;
     }
 
     @Override
@@ -39,11 +39,11 @@ public class RemoteBank extends UnicastRemoteObject implements Bank {
     public Person addPerson(final String firstName, final String lastName, final int passportId) throws RemoteException {
         final var person = new RemotePerson(firstName, lastName, passportId, this);
         UnicastRemoteObject.exportObject(person, port);
-        final var prevPerson = persons.putIfAbsent(passportId, person);
-        if (prevPerson == null) {
-            return person;
+        var realPerson = persons.putIfAbsent(passportId, person);
+        if (realPerson != null) {
+            return realPerson;
         }
-        return null;
+        return person;
     }
 
     @Override
