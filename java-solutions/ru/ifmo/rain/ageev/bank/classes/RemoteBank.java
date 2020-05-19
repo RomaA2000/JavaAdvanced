@@ -4,10 +4,13 @@ import ru.ifmo.rain.ageev.bank.interfaces.Account;
 import ru.ifmo.rain.ageev.bank.interfaces.Bank;
 import ru.ifmo.rain.ageev.bank.interfaces.Person;
 
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 public class RemoteBank extends UnicastRemoteObject implements Bank {
     private final int port;
@@ -19,15 +22,26 @@ public class RemoteBank extends UnicastRemoteObject implements Bank {
         this.port = port;
     }
 
+    private <T, E extends Remote> E add(final T id, final Map<T, E> map, final Function<? super T, ? extends E> adder) throws RemoteException {
+        final RemoteException error = new RemoteException("Error while creating");
+        final E ret = map.computeIfAbsent(id, newId -> {
+            final E element = adder.apply(newId);
+            try {
+                UnicastRemoteObject.exportObject(element, port);
+            } catch (final RemoteException remoteException) {
+                error.addSuppressed(remoteException);
+            }
+            return element;
+        });
+        if (error.getSuppressed().length > 0) {
+            throw error;
+        }
+        return ret;
+    }
+
     @Override
     public Account addAccount(String id) throws RemoteException {
-        final var newRemoteAccount = new RemoteAccount(id);
-        var realAccount = accounts.putIfAbsent(id, newRemoteAccount);
-        if (realAccount != null) {
-            return realAccount;
-        }
-        UnicastRemoteObject.exportObject(newRemoteAccount, port);
-        return newRemoteAccount;
+        return add(id, accounts, RemoteAccount::new);
     }
 
     @Override
@@ -37,13 +51,7 @@ public class RemoteBank extends UnicastRemoteObject implements Bank {
 
     @Override
     public Person addPerson(final String firstName, final String lastName, final int passportId) throws RemoteException {
-        final var person = new RemotePerson(firstName, lastName, passportId, this);
-        var realPerson = persons.putIfAbsent(passportId, person);
-        if (realPerson != null) {
-            return realPerson;
-        }
-        UnicastRemoteObject.exportObject(person, port);
-        return person;
+        return add(passportId, persons, lastId -> new RemotePerson(firstName, lastName, lastId, this));
     }
 
     @Override
