@@ -1,6 +1,5 @@
 package ru.ifmo.rain.ageev.hello;
 
-import java.io.IOException;
 import java.net.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

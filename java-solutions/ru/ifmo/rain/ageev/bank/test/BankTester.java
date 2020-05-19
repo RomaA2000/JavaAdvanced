@@ -8,6 +8,7 @@ import ru.ifmo.rain.ageev.bank.classes.LocalAccount;
 import ru.ifmo.rain.ageev.bank.classes.RemoteBank;
 import ru.ifmo.rain.ageev.bank.interfaces.Account;
 import ru.ifmo.rain.ageev.bank.interfaces.Bank;
+import ru.ifmo.rain.ageev.bank.interfaces.Person;
 
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -35,6 +36,21 @@ public class BankTester extends BaseTests {
         UnicastRemoteObject.unexportObject(bank, false);
     }
 
+    public Person getLocalPerson(final int passportId) {
+        try {
+            return bank.getLocalPerson(passportId);
+        } catch (final RemoteException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    public Person getRemotePerson(final int passportId) {
+        try {
+            return bank.getRemotePerson(passportId);
+        } catch (final RemoteException e) {
+            throw new AssertionError(e);
+        }
+    }
 
     public Account addRemoteAccount(final String name) {
         try {

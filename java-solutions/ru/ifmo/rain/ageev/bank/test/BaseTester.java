@@ -25,6 +25,7 @@ public class BaseTester {
             System.out.println("============================");
             final long time = System.currentTimeMillis() - start;
             System.out.println("All tests passed in " + time);
+            System.exit(0);
         }
     }
 

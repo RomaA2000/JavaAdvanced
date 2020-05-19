@@ -2,7 +2,9 @@ package ru.ifmo.rain.ageev.bank.classes;
 
 import ru.ifmo.rain.ageev.bank.interfaces.Account;
 
-public abstract class AbstractAccount implements Account {
+import java.io.Serializable;
+
+public abstract class AbstractAccount implements Account, Serializable {
     private final String accountId;
     private int accountAmount;
 
@@ -16,7 +18,7 @@ public abstract class AbstractAccount implements Account {
     }
 
     @Override
-    public synchronized String getId() {
+    public String getId() {
         return accountId;
     }
 

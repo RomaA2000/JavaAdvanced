@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd ../../../../../../..
-
+set -e
 root=$PWD
 
 my_name=ru.ifmo.rain.ageev.bank
@@ -19,8 +19,6 @@ echo ${out_my_path}
 javac -cp .:${junit} \
       ${src}/*.java ${src}/*.java ${src}/interfaces/*.java ${src}/classes/*.java ${src}/test/*.java -d ${out_my_path}
 
-cd ${out_my_path} || exit 1
+cd ${out_my_path}
 
 java -cp .:${junit} org.junit.runner.JUnitCore ${my_name}.test.Tests
-
-exit ${?}

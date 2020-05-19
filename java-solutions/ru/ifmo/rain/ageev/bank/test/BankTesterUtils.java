@@ -49,10 +49,20 @@ public class BankTesterUtils extends BaseTests {
         }
     }
 
+    public static void checkPerson(final Person person1, final Person person2) {
+        try {
+            assertNotNull(person2);
+            checkPerson(person1, person2.firstName(), person2.lastName(), person2.passportId());
+        } catch (final RemoteException e) {
+            throw new AssertionError(e);
+        }
+    }
+
     protected static void app(final int personNumber, final int accountNumber, final int counter, final int threads) throws RemoteException, MalformedURLException, NotBoundException {
         Server.main(null);
-        final String personId = "person_id_";
-        final String accountId = "account_id_";
+        final var personId = "person_id_";
+        final var accountId = "account_id_";
+        final var accountIdTester = "account_id_test_";
         final Bank bank = Utils.getBank();
         if (bank == null) {
             throw new AssertionError();
