@@ -16,14 +16,14 @@ public abstract class AbstractPerson implements Person, Serializable {
     private final int passportId;
     private final ConcurrentMap<String, Account> accounts;
 
-    protected AbstractPerson(String firstName, String lastName, int passportId, final ConcurrentMap<String, Account> accounts) {
+    protected AbstractPerson(final String firstName, final String lastName, final int passportId, final ConcurrentMap<String, Account> accounts) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.passportId = passportId;
         this.accounts = accounts;
     }
 
-    protected AbstractPerson(String firstName, String lastName, int passportId) {
+    protected AbstractPerson(final String firstName, final String lastName, final int passportId) {
         this(firstName, lastName, passportId, new ConcurrentHashMap<>());
     }
 
@@ -41,11 +41,11 @@ public abstract class AbstractPerson implements Person, Serializable {
         return accounts.entrySet();
     }
 
-    protected void put(Map.Entry<String, Account> pair) {
+    protected void put(final Map.Entry<String, Account> pair) {
        put(pair.getKey(), pair.getValue());
     }
 
-    protected void put(String subId, Account account) {
+    protected void put(final String subId, final Account account) {
         accounts.put(subId, account);
     }
 

@@ -29,6 +29,7 @@ public class RemoteBank extends UnicastRemoteObject implements Bank {
             try {
                 UnicastRemoteObject.exportObject(element, port);
             } catch (final RemoteException remoteException) {
+                // :NOTE: UncheckedIOException
                 error.addSuppressed(remoteException);
             }
             return element;
