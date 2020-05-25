@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public abstract class AbstractPerson implements Person, Serializable {
     private final String firstName;
@@ -36,14 +38,6 @@ public abstract class AbstractPerson implements Person, Serializable {
         return accounts.get(subId);
     }
 
-    @Override
-    public Set<Map.Entry<String, Account>> getEntrySet() {
-        return accounts.entrySet();
-    }
-
-    protected void put(Map.Entry<String, Account> pair) {
-       put(pair.getKey(), pair.getValue());
-    }
 
     protected void put(String subId, Account account) {
         accounts.put(subId, account);
@@ -51,6 +45,22 @@ public abstract class AbstractPerson implements Person, Serializable {
 
     protected Account putIfAbsent(final String subId, final Account newAccount) {
         return accounts.putIfAbsent(subId, newAccount);
+    }
+
+    protected Set<Map.Entry<String, Account>> getEntrySet() {
+        return accounts.entrySet();
+    }
+
+    protected void put(Map.Entry<String, Account> pair) throws RemoteException {
+        put(pair.getKey(), pair.getValue());
+    }
+
+    protected Account createNewAccountBySubId(final Account newAccount, final String subId) {
+        final var account = putIfAbsent(subId, newAccount);
+        if (account != null) {
+            return account;
+        }
+        return newAccount;
     }
 
     @Override

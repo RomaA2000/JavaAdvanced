@@ -14,12 +14,6 @@ public class RemotePerson extends AbstractPerson {
 
     @Override
     public Account createNewAccountBySubId(final String subId) throws RemoteException {
-        final var accountId = getAccountId(subId);
-        final var account = bank.addAccount(accountId);
-        final var prevAccount = putIfAbsent(subId, account);
-        if (prevAccount != null) {
-            return prevAccount;
-        }
-        return account;
+        return putIfAbsent(subId, bank.addAccount(getAccountId(subId)));
     }
 }

@@ -62,7 +62,6 @@ public class BankTesterUtils extends BaseTests {
         Server.main(null);
         final var personId = "person_id_";
         final var accountId = "account_id_";
-        final var accountIdTester = "account_id_test_";
         final Bank bank = Utils.getBank();
         if (bank == null) {
             throw new AssertionError();

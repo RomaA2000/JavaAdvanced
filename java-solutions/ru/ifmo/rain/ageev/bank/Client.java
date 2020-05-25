@@ -57,7 +57,8 @@ public class Client {
             var account = person.getAccount(accountSubId);
             if (account == null) {
                 System.out.println("Adding new account");
-                account = person.createNewAccountBySubId(accountSubId);
+                person.createNewAccountBySubId(accountSubId);
+                account = person.getAccount(accountSubId);
             }
             System.out.println("Money before: " + account.getAmount());
             System.out.println("Increasing amount...");

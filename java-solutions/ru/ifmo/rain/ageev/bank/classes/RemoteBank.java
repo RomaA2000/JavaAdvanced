@@ -4,6 +4,7 @@ import ru.ifmo.rain.ageev.bank.interfaces.Account;
 import ru.ifmo.rain.ageev.bank.interfaces.Bank;
 import ru.ifmo.rain.ageev.bank.interfaces.Person;
 
+import java.io.UncheckedIOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -23,20 +24,19 @@ public class RemoteBank extends UnicastRemoteObject implements Bank {
     }
 
     private <T, E extends Remote> E add(final T id, final Map<T, E> map, final Function<? super T, ? extends E> adder) throws RemoteException {
-        final RemoteException error = new RemoteException("Error while creating");
-        final E ret = map.computeIfAbsent(id, newId -> {
-            final E element = adder.apply(newId);
-            try {
-                UnicastRemoteObject.exportObject(element, port);
-            } catch (final RemoteException remoteException) {
-                error.addSuppressed(remoteException);
-            }
-            return element;
-        });
-        if (error.getSuppressed().length > 0) {
-            throw error;
+        try {
+            return map.computeIfAbsent(id, newId -> {
+                final E element = adder.apply(newId);
+                try {
+                    UnicastRemoteObject.exportObject(element, port);
+                } catch (final RemoteException remoteException) {
+                    throw new UncheckedIOException(remoteException);
+                }
+                return element;
+            });
+        } catch (UncheckedIOException e) {
+            throw (RemoteException) e.getCause();
         }
-        return ret;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class RemoteBank extends UnicastRemoteObject implements Bank {
         if (person == null) {
             return null;
         }
-        return new LocalPerson(person);
+        return new LocalPerson((RemotePerson) person);
     }
 
     @Override
