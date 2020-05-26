@@ -6,10 +6,7 @@ import java.io.Serializable;
 
 public class LocalPerson extends AbstractPerson implements Serializable {
     public LocalPerson(final RemotePerson person) {
-        super(person.firstName(), person.lastName(), person.passportId());
-        for (final var entry : person.getEntrySet()) {
-            put(entry);
-        }
+        super(person.firstName(), person.lastName(), person.passportId(), person.getMapCopy());
     }
 
     @Override

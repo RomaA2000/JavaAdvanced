@@ -8,11 +8,11 @@ public abstract class AbstractAccount implements Account, Serializable {
     private final String accountId;
     private int accountAmount;
 
-    public AbstractAccount(final String accountId) {
+    protected AbstractAccount(final String accountId) {
         this(accountId, 0);
     }
 
-    public AbstractAccount(final String accountId, final int accountAmount) {
+    protected AbstractAccount(final String accountId, final int accountAmount) {
         this.accountId = accountId;
         this.accountAmount = accountAmount;
     }

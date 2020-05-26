@@ -4,13 +4,8 @@ import ru.ifmo.rain.ageev.bank.interfaces.Account;
 import ru.ifmo.rain.ageev.bank.interfaces.Person;
 
 import java.io.Serializable;
-import java.rmi.RemoteException;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 public abstract class AbstractPerson implements Person, Serializable {
     private final String firstName;
@@ -38,21 +33,12 @@ public abstract class AbstractPerson implements Person, Serializable {
         return accounts.get(subId);
     }
 
-    // :NOTE: Убрать
-    protected void put(final String subId, final Account account) {
-        accounts.put(subId, account);
-    }
-
     protected Account putIfAbsent(final String subId, final Account newAccount) {
         return accounts.putIfAbsent(subId, newAccount);
     }
 
-    protected Set<Map.Entry<String, Account>> getEntrySet() {
-        return accounts.entrySet();
-    }
-
-    protected void put(Map.Entry<String, Account> pair) {
-        put(pair.getKey(), pair.getValue());
+    protected ConcurrentMap<String, Account> getMapCopy() {
+        return new ConcurrentHashMap<>(accounts);
     }
 
     @Override
