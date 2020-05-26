@@ -23,9 +23,9 @@ public class BankTesterUtils extends BaseTests {
     }
 
     public static void testDefaultAccountIncrease(final Account account, final String accountId) throws RemoteException {
-        BankTesterUtils.checkAccount(account, accountId, 0);
+        checkAccount(account, accountId, 0);
         account.increaseAmount(accountId.hashCode());
-        BankTesterUtils.checkAccount(account, accountId, accountId.hashCode());
+        checkAccount(account, accountId, accountId.hashCode());
     }
 
     public static void checkAccount(final Account account, final String accountId, final int amount) {
@@ -86,6 +86,6 @@ public class BankTesterUtils extends BaseTests {
                 }
             });
         }
-        parallelCommands(personNumber, commands);
+        parallelCommands(threads, commands);
     }
 }

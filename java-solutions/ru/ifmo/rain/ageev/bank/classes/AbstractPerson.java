@@ -38,7 +38,7 @@ public abstract class AbstractPerson implements Person, Serializable {
         return accounts.get(subId);
     }
 
-
+    // :NOTE: Убрать
     protected void put(final String subId, final Account account) {
         accounts.put(subId, account);
     }
