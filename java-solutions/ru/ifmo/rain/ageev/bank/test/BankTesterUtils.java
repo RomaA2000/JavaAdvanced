@@ -18,7 +18,7 @@ import static java.util.stream.IntStream.range;
 public class BankTesterUtils extends BaseTests {
     public static final String id = "testing";
 
-    public static List<String> stringGenerator(int n) {
+    public static List<String> stringGenerator(final int n) {
         return range(0, n).mapToObj(Integer::toString).collect(Collectors.toList());
     }
 

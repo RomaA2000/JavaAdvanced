@@ -51,7 +51,7 @@ public abstract class AbstractPerson implements Person, Serializable {
         return accounts.entrySet();
     }
 
-    protected void put(Map.Entry<String, Account> pair) throws RemoteException {
+    protected void put(Map.Entry<String, Account> pair) {
         put(pair.getKey(), pair.getValue());
     }
 

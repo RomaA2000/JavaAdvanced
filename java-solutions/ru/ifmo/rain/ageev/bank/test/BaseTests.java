@@ -32,15 +32,15 @@ public class BaseTests extends Assert {
         assertNotThrows(null, r);
     }
 
-    public static void assertThrows(String message, final Runnable r) {
+    public static void assertThrows(final String message, final Runnable r) {
         assertFalse(message, notThrows(r));
     }
 
-    public static void assertNotThrows(String message, final Runnable r) {
+    public static void assertNotThrows(final String message, final Runnable r) {
         assertTrue(message, notThrows(r));
     }
 
-    private static boolean notThrows(Runnable r) {
+    private static boolean notThrows(final Runnable r) {
         try {
             r.run();
         } catch (final Exception e) {
