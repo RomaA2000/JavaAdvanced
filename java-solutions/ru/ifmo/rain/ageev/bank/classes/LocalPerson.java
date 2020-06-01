@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.concurrent.ConcurrentMap;
 
 public class LocalPerson extends AbstractPerson implements Serializable {
-    public LocalPerson(final String firstName, final String lastName, final int passportId, final ConcurrentMap<String, Account> accounts) {
+    public LocalPerson(final String firstName, final String lastName, final String passportId, final ConcurrentMap<String, Account> accounts) {
         super(firstName, lastName, passportId, accounts);
     }
 

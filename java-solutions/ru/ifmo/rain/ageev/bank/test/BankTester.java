@@ -36,7 +36,7 @@ public class BankTester extends BaseTests {
         UnicastRemoteObject.unexportObject(bank, false);
     }
 
-    public Person getLocalPerson(final int passportId) {
+    public Person getLocalPerson(final String passportId) {
         try {
             return bank.getLocalPerson(passportId);
         } catch (final RemoteException e) {
@@ -44,7 +44,7 @@ public class BankTester extends BaseTests {
         }
     }
 
-    public Person getRemotePerson(final int passportId) {
+    public Person getRemotePerson(final String passportId) {
         try {
             return bank.getRemotePerson(passportId);
         } catch (final RemoteException e) {

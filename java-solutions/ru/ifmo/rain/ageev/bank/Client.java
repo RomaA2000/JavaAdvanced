@@ -16,13 +16,13 @@ public class Client {
         }
         final String firstName;
         final String lastName;
-        final int passportId;
+        final String passportId;
         final String accountSubId;
         final int amount;
         try {
             firstName = args[0];
             lastName = args[1];
-            passportId = Integer.parseInt(args[2]);
+            passportId = args[2];
             accountSubId = args[3];
             amount = Integer.parseInt(args[4]);
         } catch (NumberFormatException e) {
@@ -48,7 +48,7 @@ public class Client {
                 System.out.println("Making person");
                 person = bank.addPerson(firstName, lastName, passportId);
             }
-            if (person.firstName().equals(firstName) && person.lastName().equals(lastName) && person.passportId() == passportId) {
+            if (person.firstName().equals(firstName) && person.lastName().equals(lastName) && person.passportId().equals(passportId)) {
                 System.out.println("Person checked");
             } else {
                 System.out.println("Person checking provided error");

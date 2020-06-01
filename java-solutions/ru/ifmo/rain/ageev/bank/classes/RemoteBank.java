@@ -16,7 +16,7 @@ import java.util.function.Function;
 public class RemoteBank extends UnicastRemoteObject implements Bank {
     private final int port;
     private final ConcurrentMap<String, Account> accounts = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Integer, Person> persons = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Person> persons = new ConcurrentHashMap<>();
 
     public RemoteBank(final int port) throws RemoteException {
         super(port);
@@ -50,12 +50,12 @@ public class RemoteBank extends UnicastRemoteObject implements Bank {
     }
 
     @Override
-    public Person addPerson(final String firstName, final String lastName, final int passportId) throws RemoteException {
+    public Person addPerson(final String firstName, final String lastName, final String passportId) throws RemoteException {
         return add(passportId, persons, lastId -> new RemotePerson(firstName, lastName, lastId, this));
     }
 
     @Override
-    public Person getLocalPerson(final int passportId) throws RemoteException {
+    public Person getLocalPerson(final String passportId) throws RemoteException {
         final RemotePerson person = (RemotePerson) getRemotePerson(passportId);
         if (person == null) {
             return null;
@@ -64,7 +64,7 @@ public class RemoteBank extends UnicastRemoteObject implements Bank {
     }
 
     @Override
-    public Person getRemotePerson(final int passportId) {
+    public Person getRemotePerson(final String passportId) {
         return persons.get(passportId);
     }
 }

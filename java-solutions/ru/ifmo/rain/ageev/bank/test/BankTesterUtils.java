@@ -38,7 +38,7 @@ public class BankTesterUtils extends BaseTests {
         }
     }
 
-    public static void checkPerson(final Person person, final String firstName, final String lastName, final int passportId) {
+    public static void checkPerson(final Person person, final String firstName, final String lastName, final String passportId) {
         try {
             assertNotNull(person);
             assertEquals(firstName, person.firstName());
@@ -69,9 +69,10 @@ public class BankTesterUtils extends BaseTests {
         final List<BaseTests.Command<RemoteException>> commands = new ArrayList<>();
         for (int nowPerson = 0; nowPerson < personNumber; nowPerson++) {
             final var person = personId + nowPerson;
-            bank.addPerson(person, person, person.hashCode());
-            final var remotePerson = bank.getRemotePerson(person.hashCode());
-            checkPerson(remotePerson, person, person, person.hashCode());
+            final var hash = Integer.toString(person.hashCode());
+            bank.addPerson(person, person, hash);
+            final var remotePerson = bank.getRemotePerson(hash);
+            checkPerson(remotePerson, person, person, hash);
             commands.add(() -> {
                 final var args = new String[]{person, person, Integer.toString(person.hashCode()), "not_used", "1"};
                 assertNotNull(remotePerson);

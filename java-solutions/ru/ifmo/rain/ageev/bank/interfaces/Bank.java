@@ -18,9 +18,9 @@ public interface Bank extends Remote {
      */
     Account getAccount(String id) throws RemoteException;
 
-    Person addPerson(String name, String surname, int passportId) throws RemoteException;
+    Person addPerson(String name, String surname, String passportId) throws RemoteException;
 
-    Person getLocalPerson(int passportId) throws RemoteException;
+    Person getLocalPerson(String passportId) throws RemoteException;
 
-    Person getRemotePerson(int passportId) throws RemoteException;
+    Person getRemotePerson(String passportId) throws RemoteException;
 }

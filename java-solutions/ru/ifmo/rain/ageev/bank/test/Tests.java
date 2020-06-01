@@ -97,10 +97,11 @@ public class Tests extends BankTester {
     public void test1_localPerson() throws RemoteException {
         for (int i = 0; i < 100; ++i) {
             final String person = id + i;
-            bank.addPerson(person, person, person.hashCode());
-            final var remotePerson = bank.getRemotePerson(person.hashCode());
-            final var localPerson = bank.getLocalPerson(person.hashCode());
-            checkPerson(localPerson, person, person, person.hashCode());
+            final var hash = Integer.toString(person.hashCode());
+            bank.addPerson(person, person, hash);
+            final var remotePerson = bank.getRemotePerson(hash);
+            final var localPerson = bank.getLocalPerson(hash);
+            checkPerson(localPerson, person, person, hash);
             checkPerson(localPerson, remotePerson);
             localPerson.createNewAccountBySubId(person + 10);
             assertNull(remotePerson.getAccount(person + 10));

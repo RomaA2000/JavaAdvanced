@@ -12,17 +12,17 @@ import java.util.concurrent.ConcurrentMap;
 public abstract class AbstractPerson implements Person, Serializable {
     private final String firstName;
     private final String lastName;
-    private final int passportId;
+    private final String passportId;
     private final ConcurrentMap<String, Account> accounts;
 
-    AbstractPerson(final String firstName, final String lastName, final int passportId, final ConcurrentMap<String, Account> accounts) {
+    AbstractPerson(final String firstName, final String lastName, final String passportId, final ConcurrentMap<String, Account> accounts) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.passportId = passportId;
         this.accounts = accounts;
     }
 
-    AbstractPerson(final String firstName, final String lastName, final int passportId) {
+    AbstractPerson(final String firstName, final String lastName, final String passportId) {
         this(firstName, lastName, passportId, new ConcurrentHashMap<>());
     }
 
@@ -59,7 +59,7 @@ public abstract class AbstractPerson implements Person, Serializable {
     }
 
     @Override
-    public int passportId() {
+    public String passportId() {
         return passportId;
     }
 }

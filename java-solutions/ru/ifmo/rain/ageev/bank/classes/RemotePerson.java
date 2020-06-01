@@ -7,7 +7,7 @@ import java.rmi.RemoteException;
 
 public class RemotePerson extends AbstractPerson {
     private final Bank bank;
-    public RemotePerson(final String firstName, final String secondName, final int passportId, final Bank bank) {
+    public RemotePerson(final String firstName, final String secondName, final String passportId, final Bank bank) {
         super(firstName, secondName, passportId);
         this.bank = bank;
     }
