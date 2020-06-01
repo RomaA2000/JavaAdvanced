@@ -4,6 +4,8 @@ import ru.ifmo.rain.ageev.bank.interfaces.Account;
 import ru.ifmo.rain.ageev.bank.interfaces.Person;
 
 import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -13,14 +15,14 @@ public abstract class AbstractPerson implements Person, Serializable {
     private final int passportId;
     private final ConcurrentMap<String, Account> accounts;
 
-    protected AbstractPerson(final String firstName, final String lastName, final int passportId, final ConcurrentMap<String, Account> accounts) {
+    AbstractPerson(final String firstName, final String lastName, final int passportId, final ConcurrentMap<String, Account> accounts) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.passportId = passportId;
         this.accounts = accounts;
     }
 
-    protected AbstractPerson(final String firstName, final String lastName, final int passportId) {
+    AbstractPerson(final String firstName, final String lastName, final int passportId) {
         this(firstName, lastName, passportId, new ConcurrentHashMap<>());
     }
 
@@ -33,12 +35,17 @@ public abstract class AbstractPerson implements Person, Serializable {
         return accounts.get(subId);
     }
 
-    protected Account putIfAbsent(final String subId, final Account newAccount) {
+    Account putIfAbsent(final String subId, final Account newAccount) {
         return accounts.putIfAbsent(subId, newAccount);
     }
 
-    protected ConcurrentMap<String, Account> getMapCopy() {
-        return new ConcurrentHashMap<>(accounts);
+    ConcurrentMap<String, Account> getMapCopy() throws RemoteException {
+        var newAccounts = new ConcurrentHashMap<String, Account>();
+        for (final Map.Entry<String, Account> entry : accounts.entrySet()) {
+            final var val = entry.getValue();
+            newAccounts.put(entry.getKey(), new LocalAccount(val.getId(), val.getAmount()));
+        }
+        return newAccounts;
     }
 
     @Override

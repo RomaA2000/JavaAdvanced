@@ -46,7 +46,7 @@ class ClientWorker {
         }
     }
 
-    private void sendAndReceive(final byte[] buffer,final String prefix, final int requestId, final int threadId, final DatagramSocket datagramSocket,
+    private static void sendAndReceive(final byte[] buffer,final String prefix, final int requestId, final int threadId, final DatagramSocket datagramSocket,
                                 final DatagramPacket datagramPacket) {
         final String message = makeData(prefix, threadId, requestId);
         while (!(datagramSocket.isClosed() || Thread.currentThread().isInterrupted())) {

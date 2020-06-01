@@ -70,7 +70,7 @@ public class BankTester extends BaseTests {
 
     public Account createLocalAccount(final Account account)  {
         try {
-            return new LocalAccount(account);
+            return new LocalAccount(account.getId(), account.getAmount());
         } catch (final RemoteException e) {
             throw new AssertionError(e);
         }

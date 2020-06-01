@@ -67,21 +67,21 @@ public class BankTesterUtils extends BaseTests {
             throw new AssertionError();
         }
         final List<BaseTests.Command<RemoteException>> commands = new ArrayList<>();
-        for (int now_person = 0; now_person < personNumber; now_person++) {
-            final var person = personId + now_person;
+        for (int nowPerson = 0; nowPerson < personNumber; nowPerson++) {
+            final var person = personId + nowPerson;
             bank.addPerson(person, person, person.hashCode());
             final var remotePerson = bank.getRemotePerson(person.hashCode());
             checkPerson(remotePerson, person, person, person.hashCode());
             commands.add(() -> {
                 final var args = new String[]{person, person, Integer.toString(person.hashCode()), "not_used", "1"};
                 assertNotNull(remotePerson);
-                for (int now_account = 0; now_account < accountNumber; now_account++) {
-                    args[3] = accountId + now_account;
-                    for (int inc_num = 0; inc_num < counter; inc_num++) {
+                for (int nowAccount = 0; nowAccount < accountNumber; nowAccount++) {
+                    args[3] = accountId + nowAccount;
+                    for (int incNum = 0; incNum < counter; incNum++) {
                         Client.main(args);
                         var account = remotePerson.getAccount(args[3]);
                         assertNotNull(account);
-                        assertEquals(inc_num + 1, account.getAmount());
+                        assertEquals(incNum + 1, account.getAmount());
                     }
                 }
             });

@@ -56,11 +56,11 @@ public class RemoteBank extends UnicastRemoteObject implements Bank {
 
     @Override
     public Person getLocalPerson(final int passportId) throws RemoteException {
-        final var person = getRemotePerson(passportId);
+        final RemotePerson person = (RemotePerson) getRemotePerson(passportId);
         if (person == null) {
             return null;
         }
-        return new LocalPerson((RemotePerson) person);
+        return new LocalPerson(person.firstName(), person.lastName(), person.passportId(),  person.getMapCopy());
     }
 
     @Override
