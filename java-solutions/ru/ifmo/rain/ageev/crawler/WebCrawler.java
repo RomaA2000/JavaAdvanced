@@ -25,7 +25,6 @@ public class WebCrawler implements Crawler {
 
     /**
      * This method is used to call the {@link WebCrawler#download}.
-     *
      * @param args the arguments
      */
     public static void main(final String[] args) {
