@@ -17,9 +17,9 @@ class Pools {
         downloaderPool = Executors.newFixedThreadPool(downloaders);
     }
 
-    private static void await(ExecutorService pool) {
+    private static void await(ExecutorService executorService) {
         try {
-            pool.awaitTermination(AWAIT, TimeUnit.MILLISECONDS);
+            executorService.awaitTermination(AWAIT, TimeUnit.MILLISECONDS);
         } catch (final InterruptedException e) {
             System.err.println("Can't terminate pool: " + e.getMessage());
         }
